@@ -100,6 +100,16 @@ const useCompany = (opt: string = "") => {
     searchParams.status.withOptions({ shallow: false }).withDefault(""),
   );
 
+    const [projectId, setProject] = useQueryState(
+      "projectId",
+      searchParams.status.withOptions({ shallow: false }).withDefault(""),
+    );
+
+      const [language, setLanguage] = useQueryState(
+        "language",
+        searchParams.status.withOptions({ shallow: false }).withDefault(""),
+      );
+
   const [listType, setListType] = useQueryState(
     "dealType",
     searchParams.status.withOptions({ shallow: false }).withDefault("SALE"),
@@ -126,6 +136,8 @@ const useCompany = (opt: string = "") => {
     setBedroom(null);
     setBathroom(null);
     setAssignedTo(null);
+    setProject(null);
+    setLanguage(null);
   }, [setSearchQuery, setlistingCategoryId]);
 
   const dealTypeOptions = [
@@ -135,6 +147,8 @@ const useCompany = (opt: string = "") => {
 
   const isAnyFilterActive = useMemo(() => {
     return (
+      !!projectId ||
+      !!language ||
       !!searchQuery ||
       !!listingCategoryId ||
       !!listingCategoryId ||
@@ -147,6 +161,8 @@ const useCompany = (opt: string = "") => {
       !!maxPrice
     );
   }, [
+    projectId,
+    language,
     searchQuery,
     listingCategoryId,
     listingCategoryId,
@@ -173,11 +189,13 @@ const useCompany = (opt: string = "") => {
         maxPrice,
         bedroom,
         bathroom,
+        projectId,
+        language
       },
     ],
     queryFn: async () => {
       const response = await axiosAuth.get(
-        `/listing/company/${opt}?limit=${pageSize}&page=${currentPage}&title=${searchQuery}&locationId=${location}&dealType=${listType}&category=${listingCategoryId}&minPrice=${minPrice}&maxPrice=${maxPrice}&bedroom=${bedroom}&bathroom=${bathroom}&assigned=${assignedTo}`,
+        `/listing/company/${opt}?limit=${pageSize}&page=${currentPage}&title=${searchQuery}&locationId=${location}&projectId=${projectId}&dealType=${listType}&category=${listingCategoryId}&minPrice=${minPrice}&maxPrice=${maxPrice}&bedroom=${bedroom}&bathroom=${bathroom}&language=${language}`,
       );
       const result = response.data.data;
       return result;
@@ -198,11 +216,13 @@ const useCompany = (opt: string = "") => {
         maxPrice,
         bedroom,
         bathroom,
+        projectId,
+        language
       },
     ],
     queryFn: async () => {
       const response = await axiosAuth.get(
-        `/listing/agent/${opt}?limit=${pageSize}&page=${currentPage}&title=${searchQuery}&locationId=${location}&dealType=${listType}&category=${listingCategoryId}&minPrice=${minPrice}&maxPrice=${maxPrice}&bedroom=${bedroom}&bathroom=${bathroom}&assigned=${assignedTo}`,
+        `/listing/agent/${opt}?limit=${pageSize}&page=${currentPage}&title=${searchQuery}&locationId=${location}&projectId=${projectId}&dealType=${listType}&category=${listingCategoryId}&minPrice=${minPrice}&maxPrice=${maxPrice}&bedroom=${bedroom}&bathroom=${bathroom}&language=${language}`,
       );
       const result = response.data.data;
       return result;
@@ -311,6 +331,19 @@ const useCompany = (opt: string = "") => {
     }
   };
 
+    const availableLanguages = [
+    { value: "arabic", label: "Arabic" },
+    { value: "english", label: "English" },
+    { value: "farsi", label: "Farsi" },
+    { value: "french", label: "French" },
+    { value: "hindi", label: "Hindi" },
+    { value: "italian", label: "Italian" },
+    { value: "russian", label: "Russian" },
+    { value: "spanish", label: "Spanish" },
+    { value: "urdu", label: "Urdu" },
+    { value: "others", label: "Others" },
+  ];
+
   useEffect(() => {
     if (!openShare) {
       setWhatsappData(null);
@@ -318,6 +351,11 @@ const useCompany = (opt: string = "") => {
   }, [openShare]);
 
   return {
+    availableLanguages,
+    projectId,
+    setProject,
+    language,
+    setLanguage,
     resetFilters,
     isAnyFilterActive,
     listingCategoryId,

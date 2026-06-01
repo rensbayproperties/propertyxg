@@ -37,7 +37,7 @@ const routeList: RouteProps[] = [
   },
   {
     href: "/search",
-    label: "New Projects",
+    label: "New Project",
   },
   {
     href: "/",

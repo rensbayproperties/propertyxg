@@ -49,7 +49,7 @@ const PriceFilter = ({
           <ChevronDown className="ml-5 h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="md:w-96 w-[50vw] z-[99999]">
+      <PopoverContent className="md:w-80 w-[50vw] z-[99999]">
         <div className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-1">

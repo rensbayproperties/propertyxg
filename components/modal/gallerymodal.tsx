@@ -1,202 +1,156 @@
 import React, { useState } from "react";
-import { LocationSVG, PhotoSVG, WhatsappSVG } from "../icons";
-import { Phone, Mail } from "lucide-react";
-import { CallModal } from "./ContactModal";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getFirstLetter } from "@/constant/data";
-import useListing from "@/hooks/useListing";
+import { PhotoSVG } from "../icons";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
   images: string[];
-  id: string;
-  user: string
 };
 
-export default function GalleryModal({ open, setOpen, images, id, user }: Props) {
-  const [openCall, setOpenCall] = useState(false);
-   const {
+export default function GalleryModal({
+  open,
+  setOpen,
+  images,
+}: Props) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-      isDialogOpen,
-      setIsDialogOpen,
-      setSelectedListingId,
-      selectedListingId,
-      contactAgent,
-      form,
-      isPendingPropertyContact,
-      onSubmit,
-      selectedListing,
-      isLoadingSelectedListing,
-    } = useListing();
+  // swipe tracking
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  const closeLightbox = () => setActiveIndex(null);
+
+  const showPrev = () => {
+    if (activeIndex === null) return;
+    setActiveIndex((prev) =>
+      prev === 0 ? images.length - 1 : (prev as number) - 1
+    );
+  };
+
+  const showNext = () => {
+    if (activeIndex === null) return;
+    setActiveIndex((prev) =>
+      prev === images.length - 1 ? 0 : (prev as number) + 1
+    );
+  };
+
+  // swipe logic
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === null || touchEndX === null) return;
+
+    const distance = touchStartX - touchEndX;
+
+    const isSwipe = Math.abs(distance) > 50; // threshold
+
+    if (!isSwipe) return;
+
+    if (distance > 0) {
+      // swipe left → next
+      showNext();
+    } else {
+      // swipe right → prev
+      showPrev();
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[70vw] max-w-none h-[80vh] z-[1000] p-0 overflow-hidden">
-          <div className="relative rounded-xl shadow-2xl w-full h-full mx-auto bg-white flex flex-col">
-            
-            {/* Header */}
-            <div className="sticky top-0 z-50 bg-white flex items-center justify-center pt-4 pb-2">
-              <div className="w-[95%] h-[50px] border p-1 rounded-[7px] flex justify-evenly items-center">
-                
-                <div className="w-full h-[100%] rounded-[7px] flex items-center justify-center gap-1 bg-[#e5f0ff] cursor-pointer">
-                  <PhotoSVG />
-                  <span className="text-[14px] text-blue-500">Photos</span>
-                  <span className="text-[14px] text-blue-500">
-                    ({images?.length})
-                  </span>
-                </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="w-[70vw] max-w-none h-[80vh] z-[1000] p-0 overflow-hidden">
+        <div className="relative rounded-xl shadow-2xl w-full h-full mx-auto bg-white flex flex-col">
 
+          {/* Header */}
+          <div className="sticky top-0 z-50 bg-white flex items-center justify-center pt-4 pb-2">
+            <div className="w-[95%] h-[50px] border p-1 rounded-[7px] flex justify-evenly items-center">
+              <div className="w-full h-[100%] rounded-[7px] flex items-center justify-center gap-1 bg-[#e5f0ff] cursor-pointer">
+                <PhotoSVG />
+                <span className="text-[14px] text-blue-500">Photos</span>
+                <span className="text-[14px] text-blue-500">
+                  ({images?.length})
+                </span>
               </div>
-            </div>
-
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-4 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* LEFT */}
-                <div className="flex flex-col gap-4">
-                  {images
-                    ?.filter((_, index) => index % 2 === 0)
-                    .map((img, i) => (
-                      <img
-                        key={i}
-                        src={img}
-                        alt="property"
-                        className="w-full h-[220px] object-cover rounded-lg"
-                      />
-                    ))}
-                </div>
-
-                {/* RIGHT */}
-                <div className="flex flex-col gap-4">
-                  {images
-                    ?.filter((_, index) => index % 2 !== 0)
-                    .map((img, i) => (
-                      <img
-                        key={i}
-                        src={img}
-                        alt="property"
-                        className="w-full h-[220px] object-cover rounded-lg"
-                      />
-                    ))}
-                </div>
-
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="sticky bottom-0 z-50 bg-white border-t px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
-              
-              <div className="flex items-center gap-3">
-               <Avatar className="h-12 w-12 rounded-full shadow border">
-                                   <AvatarImage src={""} />
-                                   <AvatarFallback className="rounded-full">
-                                     {getFirstLetter(user)}
-                                   </AvatarFallback>
-                                 </Avatar>
-
-                <p className="text-sm">
-                  Listing by
-                  <span className="font-semibold ml-1 text-blue-500">
-                    {user}
-                  </span>
-                </p>
-              </div>
-
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-          <Dialog
-                    open={isDialogOpen}
-                    onOpenChange={(open: boolean) => {
-                      setIsDialogOpen(open);
-                      if (!open) {
-                        setSelectedListingId(null);
-                      }
-                    }}
-                  >
-                    <DialogContent className="max-w-3xl overflow-hidden border border-primary/20 bg-gradient-to-b from-background via-background/95 to-card">
-                      <DialogHeader className="pt-0 pb-2">
-                        <DialogTitle className="flex items-center justify-between text-lg font-semibold tracking-tight">
-                          <div className="flex gap-2">
-                            <i className="bi-whatsapp text-green-800"></i>
-                            <span className="block text-lg font-extrabold text-green-800">
-                              Contact Agent
-                            </span>
-                          </div>
-                        </DialogTitle>
-                      </DialogHeader>
-          
-                      {isLoadingSelectedListing ? (
-                        <div className="py-6 text-sm text-muted-foreground">...</div>
-                      ) : !selectedListing ? (
-                        <div className="py-6 text-sm text-muted-foreground">
-                          No information available.
-                        </div>
-                      ) : (
-                        <ScrollArea className="max-h-[80vh] overflow-scroll p-1">
-                          <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)}>
-                              <div className="flex flex-col gap-4">
-                                <FormField
-                                  control={form.control}
-                                  name="message"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      {/* <FormLabel>Notes</FormLabel> */}
-                                      <FormControl>
-                                        <Textarea
-                                          {...field}
-                                          placeholder="Message"
-                                          rows={10}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <div>
-                                  <Button
-                                    type="submit"
-                                    loading={isPendingPropertyContact}
-                                    className="w-full bg-green-800 hover:bg-green-800 text-green-100 shadow-md"
-                                  >
-                                    {isPendingPropertyContact
-                                      ? "Please wait..."
-                                      : "Continue"}
-                                  </Button>
-                                </div>
-                              </div>
-                            </form>
-                          </Form>
-                        </ScrollArea>
-                      )}
-                    </DialogContent>
-                  </Dialog>
 
-      <CallModal open={openCall} setOpen={setOpenCall} />
-    </>
+          {/* Gallery Grid */}
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {images?.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt="property"
+                  className="w-full h-[220px] object-fill rounded-lg cursor-pointer hover:opacity-90 transition"
+                  onClick={() => setActiveIndex(index)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* LIGHTBOX */}
+          {activeIndex !== null && (
+            <div
+              className="fixed inset-0 bg-black/90 flex items-center justify-center z-[2000]"
+              onClick={closeLightbox}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {/* Close */}
+              <button
+                className="absolute top-5 right-5 text-white text-2xl"
+                onClick={closeLightbox}
+              >
+                ✕
+              </button>
+
+              {/* Prev */}
+              <button
+                className="absolute left-5 text-white text-4xl px-3"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showPrev();
+                }}
+              >
+                ‹
+              </button>
+
+              {/* Image */}
+              <img
+                src={images[activeIndex]}
+                alt="preview"
+                className="max-h-[90vh] max-w-[90vw] object-fit rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+              />
+
+              {/* Next */}
+              <button
+                className="absolute right-5 text-white text-4xl px-3"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showNext();
+                }}
+              >
+                ›
+              </button>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

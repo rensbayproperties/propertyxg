@@ -97,7 +97,7 @@ const Navbar = ({ className }: { className?: string }) => {
             </nav>
             <div className="flex items-center gap-4">
               <div className="hidden md:flex gap-4 items-center">
-                <div>
+                {/* <div>
                   <Sheet>
                     <SheetTrigger>
                       <Menu size={24} />
@@ -114,11 +114,11 @@ const Navbar = ({ className }: { className?: string }) => {
                           variant: "outline",
                         })}`}
                       >
-                        Log In
+                        Log
                       </Link>
                     </SheetContent>
                   </Sheet>
-                </div>
+                </div> */}
                 <div>
                   <Link
                     href={`/signin`}

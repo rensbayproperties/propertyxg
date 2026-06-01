@@ -111,7 +111,7 @@ export function DataTableFilterBox({
           <i className="bi-chevron-down"></i>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent className="w-[200px] p-0 z-[99999]" align="start" >
         {isLoading ? (
           "loading..."
         ) : (

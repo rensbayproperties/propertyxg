@@ -4,39 +4,89 @@ import Image from "next/image";
 import { Info } from "lucide-react";
 import Container from "./Container";
 
-type ListingProjectShowcaseProps = {
-  title: string;
-  category: string;
+type ProjectData = {
+  project_start_date: string;
+  project_end_date: string | null;
+
+  project_type_id: number;
+  project_classification_id: number;
+  project_classification_ar: string;
+
+  project_status: string;
+  percent_completed: number;
+
+  completion_date: string | null;
+  cancellation_date: string;
+
+  project_description_en: string;
+
+  area_name_en: string;
+  master_project_en: string;
+  zoning_authority_en: string;
+
+  no_of_lands: number;
+  no_of_buildings: number;
+  no_of_villas: number;
+  no_of_units: number;
+
+  developer_name_en: string;
+  project_name_en: string;
+
+  images: string;
+
   status: string;
-  developer: string;
+};
 
-  launchPrice: string;
-  paymentPlan: string;
-  handover: string;
+type ListingProjectShowcaseProps = {
+  data: ProjectData;
 
-  description: string;
-
-  mainImage: string;
-  topImage: string;
-  bottomImage: string;
+  launchPrice?: string;
+  paymentPlan?: string;
 
   onRegisterInterest?: () => void;
 };
 
 export default function ListingProjectShowcase({
-  title,
-  category,
-  status,
-  developer,
-  launchPrice,
-  paymentPlan,
-  handover,
-  description,
-  mainImage,
-  topImage,
-  bottomImage,
+  data,
+  launchPrice = "Ask for Price",
+  paymentPlan = "Flexible",
   onRegisterInterest,
 }: ListingProjectShowcaseProps) {
+  /**
+   * HANDLE IMAGES
+   * images = comma separated string
+   */
+  const imageList = data?.images
+    ? data.images
+        .split(",")
+        .map((img) => img.trim())
+        .filter(Boolean)
+    : [];
+
+  /**
+   * FALLBACK IMAGE
+   */
+  const fallbackImage = "";
+
+  /**
+   * IF ONLY 1 IMAGE
+   */
+  const hasSingleImage = imageList.length <= 1;
+
+  /**
+   * FIRST 3 IMAGES
+   */
+  const mainImage = imageList?.[0] || fallbackImage;
+  const topImage = imageList?.[1] || mainImage;
+  const bottomImage = imageList?.[2] || mainImage;
+
+  /**
+   * FORMAT HANDOVER DATE
+   */
+  const handover = data?.completion_date
+    ? new Date(data.completion_date).getFullYear()
+    : "TBA";
+
   return (
     <Container>
       <div className="grid grid-cols-1 border lg:grid-cols-[50%_50%] gap-4 bg-gray-50 rounded-2xl p-4 mx-auto overflow-hidden">
@@ -45,60 +95,65 @@ export default function ListingProjectShowcase({
           {/* HEADER */}
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold leading-tight">
-              {title}
+              {data?.project_name_en}
             </h1>
 
-            <p className="text-base mt-1">{category}</p>
+            <p className="text-base mt-1">
+              {[data?.area_name_en, data?.master_project_en]
+                .filter(Boolean)
+                .join(", ")}
+            </p>
 
             <div className="flex items-center gap-2 mt-3 flex-wrap">
               <span className="bg-[#7e3af2] text-white text-xs font-semibold px-3 py-1 rounded-md">
-                {status}
+                {data?.project_status}
               </span>
 
               <span className="text-sm">•</span>
 
               <p className="text-sm">
-                By <span className="font-semibold">{developer}</span>
+                By{" "}
+                <span className="font-semibold">{data?.developer_name_en}</span>
               </p>
             </div>
           </div>
 
           {/* INFO CARD */}
           <div className="bg-white rounded-xl border mt-4 overflow-hidden shadow-sm">
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-4">
               {/* PRICE */}
               <div className="p-3 border-r">
-                <p className="opacity-80 text-xs">Launch Price</p>
+                <p className="opacity-80 text-xs">No Of Units</p>
 
                 <h3 className="text-xl font-bold mt-1 text-[#111827]">
-                  {launchPrice}
+                  {data?.no_of_units}
                 </h3>
-
-                <button className="text-gray-500 font-semibold text-xs mt-2 hover:underline">
-                  View unit types
-                </button>
               </div>
 
               {/* PAYMENT */}
               <div className="p-3 border-r">
-                <p className="opacity-80 text-xs">Payment Plan</p>
+                <p className="opacity-80 text-xs">No Of Villas</p>
 
                 <div className="flex items-center gap-1 mt-1">
                   <h3 className="text-xl font-bold text-[#111827]">
-                    {paymentPlan}
+                    {data?.no_of_villas}
                   </h3>
 
                   <Info size={13} className="text-gray-400" />
                 </div>
+              </div>
 
-                <button className="text-gray-500 font-semibold text-xs mt-2 hover:underline">
-                  View complete plan
-                </button>
+              <div className="p-3 border-r">
+                <p className="opacity-80 text-xs">No Of Buildings</p>
+
+                <h3 className="text-xl font-bold mt-1 text-[#111827]">
+                  {data?.no_of_buildings}
+                </h3>
               </div>
 
               {/* HANDOVER */}
               <div className="p-3">
-                <p className="opacity-80 text-xs">Handover</p>
+                <p className="opacity-80 text-xs">HandOver</p>
 
                 <h3 className="text-xl font-bold mt-1 text-[#111827]">
                   {handover}
@@ -129,52 +184,66 @@ export default function ListingProjectShowcase({
           {/* DESCRIPTION */}
           <div className="mt-4">
             <p className="text-sm leading-7 text-gray-700 line-clamp-4">
-              {description}
+              {data?.project_description_en}
             </p>
-
-            <button className="mt-2 text-gray-500 font-semibold text-sm hover:underline">
-              Read more
-            </button>
           </div>
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="w-[95%]">
-          <div className="grid grid-cols-[60%_40%] gap-3 h-full min-w-0">
-            {/* MAIN IMAGE */}
-            <div className="relative h-full w-full rounded-xl overflow-hidden">
+        <div className="w-full">
+          {hasSingleImage ? (
+            /**
+             * SINGLE IMAGE LAYOUT
+             */
+            <div className="relative w-[97%] min-h-[420px] rounded-2xl overflow-hidden">
               <Image
                 src={mainImage}
-                alt={title}
+                alt={data?.project_name_en}
                 fill
                 className="object-cover"
-                sizes="100%"
+                sizes="100vw"
               />
             </div>
-
-            {/* SIDE IMAGES */}
-            <div className="grid grid-rows-2 gap-3 h-full">
+          ) : (
+            /**
+             * MULTI IMAGE LAYOUT
+             */
+            <div className="grid grid-cols-[60%_40%] gap-3 h-full min-h-[420px] w-[97%]">
+              {/* MAIN IMAGE */}
               <div className="relative h-full w-full rounded-xl overflow-hidden">
                 <Image
-                  src={topImage}
-                  alt={title}
+                  src={mainImage}
+                  alt={data?.project_name_en}
                   fill
                   className="object-cover"
-                  sizes="100%"
+                  sizes="100vw"
                 />
               </div>
 
-              <div className="relative h-full w-full rounded-xl overflow-hidden">
-                <Image
-                  src={bottomImage}
-                  alt={title}
-                  fill
-                  className="object-cover"
-                  sizes="100%"
-                />
+              {/* SIDE IMAGES */}
+              <div className="grid grid-rows-2 gap-3 h-full">
+                <div className="relative h-full w-full rounded-xl overflow-hidden">
+                  <Image
+                    src={topImage}
+                    alt={data?.project_name_en}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                </div>
+
+                <div className="relative h-full w-full rounded-xl overflow-hidden">
+                  <Image
+                    src={bottomImage}
+                    alt={data?.project_name_en}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </Container>

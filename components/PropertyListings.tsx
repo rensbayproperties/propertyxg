@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { MapPin } from "lucide-react";
+import { Bath, Bed, MapPin, Maximize, Square } from "lucide-react";
 import Link from "next/link";
 import SearchPropertyCardSkeleton from "./SearchPropertyCardSkeleton";
 import { formatMoney } from "@/lib/utils";
@@ -11,30 +11,50 @@ export const SearchPropertyCard = ({ property }: any) => {
   const images = property?.images?.map((img: any) => img.url) || [];
   return (
     <Link href={`/search/${property.id}`}>
-      <div className="grid md:grid-cols-2 w-auto gap-2 p-2 rounded bg-white">
-        <div className="relative">
+      <div className="w-[160px] overflow-hidden rounded-md bg-white shadow-sm border">
+        {/* Image */}
+        <div className="relative h-[100px] w-full">
           <Image
             src={images[0]}
-            width={"100"}
-            height={"100"}
-            alt=""
-            className="rounded object-cover"
+            alt={property.title}
+            fill
+            className="object-cover"
           />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <h4 className="line-clamp-1 text-sm text-brand">{property.title}</h4>
-          <div className="flex gap-1 opacity-60 items-center">
-            <MapPin size={12} />
-            <span className="leading-none line-clamp-1 text-xs">
-              {property?.location?.name}
-            </span>
-          </div>
-          <p className="text-money">
-            <span className="text-xs line-clamp-1">
-              {formatMoney(property?.price)}
-            </span>
+        {/* Content */}
+        <div className="p-2">
+          {/* Price */}
+          <p className="text-[14px] font-semibold text-gray-900">
+            {formatMoney(property?.price)}
           </p>
+
+          {/* Location */}
+          <p className="mt-1 text-[11px] text-gray-500 line-clamp-1">
+            {property?.location?.name}
+          </p>
+
+          <p className="mt-1 text-[11px] text-gray-500 line-clamp-1">
+            {property?.category?.name}
+          </p>
+
+          {/* Features */}
+          <div className="mt-3 flex items-center justify-between text-[11px] text-gray-600 gap-2">
+            <div className="flex items-center gap-1">
+              <Bed size={12} />
+              <span>{property?.property_bedroom}</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <Bath size={12} />
+              <span>{property?.property_bathroom}</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <Maximize size={12} />
+              <span>{property?.property_size?.toLocaleString() + " sqft"}</span>
+            </div>
+          </div>
         </div>
       </div>
     </Link>
