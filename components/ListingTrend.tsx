@@ -67,7 +67,7 @@ export default function ListingTrend({ data, label }: Props) {
             <Line
               type="monotone"
               dataKey="price"
-              stroke="#1c63f3"
+              stroke="#b61cf3"
               strokeWidth={2.5}
               dot={false}
             />

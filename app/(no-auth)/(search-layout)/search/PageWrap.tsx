@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { cn, formatMoney, formatToReadableDate, getTimeAgo } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { BedDouble, Bath, Maximize, Heart } from "lucide-react";
+import { BedDouble, Bath, Maximize, Heart, Phone } from "lucide-react";
 import useListing from "@/hooks/useListing";
 import usePropertyContactReview from "@/hooks/usePropertyContactReview";
 import {
@@ -39,6 +39,7 @@ import ListingProjectShowcase from "@/components/ListingProjectShowcase";
 import { DataTableFilter } from "@/components/ui/table/data-table-filter";
 import ExtraFilter from "@/components/search/ExtraFilter";
 import PriceFilter from "@/components/search/PriceFilter";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const PageWrap = () => {
   const {
@@ -81,6 +82,8 @@ const PageWrap = () => {
     isAnyFilterActive,
     allcategories,
     isLoadingCategory,
+    projectData,
+    gettingprojectData,
   } = useListing();
 
   const { formAlert, onSubmitAlert, isPending } = usePublicAlert();
@@ -90,6 +93,7 @@ const PageWrap = () => {
   );
 
   const [open, setOpen] = useState(false);
+  const [openContact, setOpenContact] = useState(false);
   const [filters, setFilters] = useState(false);
   const [LinkLocation, setLinkLocation] = useState("");
 
@@ -123,8 +127,9 @@ const PageWrap = () => {
       title: "Bedrooms",
       links:
         listingsRecommendations?.suggestedBedrooms?.map((bedroom: string) => ({
-          label: `${bedroom} Bedroom ${listingsRecommendations?.suggestedCategories?.[0] || "Properties"
-            } in ${LinkLocation || "Dubai"}`,
+          label: `${bedroom} Bedroom ${
+            listingsRecommendations?.suggestedCategories?.[0] || "Properties"
+          } in ${LinkLocation || "Dubai"}`,
           href: location
             ? `/search?bedroom=${bedroom}&locationId=${location}`
             : `/search?bedroom=${bedroom}`,
@@ -136,8 +141,9 @@ const PageWrap = () => {
       links:
         listingsRecommendations?.suggestedBathrooms?.map(
           (bathroom: string) => ({
-            label: `${bathroom} Bathroom Properties in ${LinkLocation || "Dubai"
-              }`,
+            label: `${bathroom} Bathroom Properties in ${
+              LinkLocation || "Dubai"
+            }`,
             href: location
               ? `/search?bathroom=${bathroom}?locationId=${location}`
               : `/search?bathroom=${bathroom}`,
@@ -145,6 +151,12 @@ const PageWrap = () => {
         ) || [],
     },
   ];
+
+  const [popupInfo, setpopupInfo] = useState("");
+
+  const contactInfo = listings?.data?.data?.filter(
+    (info: any) => info.id === popupInfo,
+  );
 
   return (
     <div className="bg-gradient-to-ts from-gray-50 to-white bg-background">
@@ -173,9 +185,11 @@ const PageWrap = () => {
                 if (selectedItem.type === "project") {
                   setProject(String(selectedItem.id));
                   setLocation(null);
+                  setLinkLocation(String(selectedItem.title));
                 } else {
                   setLocation(String(selectedItem.id));
                   setProject(null);
+                  setLinkLocation(selectedItem.title);
                 }
               }}
             />
@@ -188,52 +202,112 @@ const PageWrap = () => {
             isLoading={isLoadingCategory}
           />
 
-          <ExtraFilter
-            setBeds={setBedroom}
-            setBaths={setBathroom}
-            beds={bedroom}
-            baths={bathroom}
-          />
-          {/* <DataTableFilterBox
-            filterKey="language"
-            title="Language"
-            options={availableLanguages || []}
-            setFilterValue={setLanguage}
-            filterValue={language}
-          /> */}
-          {/* <DataTableResetFilter
+          <div>
+            <Sheet>
+              <SheetTrigger>
+                {/* <Menu size={24} /> */}
+                <Button className="ml-auto" variant={"outline"}>
+                  <i className="bi-filter"></i> All filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="z-[99999]">
+                <div className="relative w-full flex flex-col space-y-5">
+                  <div className="flex flex-col items-start justify-between py-6 border-b shrink-0">
+                    <h2 className="text-lg lg:text-lg font-bold text-gray-900">
+                      More Filters
+                    </h2>
+
+                    <p className="text-sm text-gray-500 mt-2">
+                      Refine your property search with advanced filters
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="rounded-3xl border bg-white shadow-sm overflow-visible relative z-10 flex flex-col sm:flex-row sm:p-6 space-y-3 justify-between items-center">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        Price (AED)
+                      </h3>
+
+                      <PriceFilter
+                        setMaxPrice={setMaxPrice}
+                        setMinPrice={setMinPrice}
+                        minPrice={minPrice}
+                        maxPrice={maxPrice}
+                      />
+                    </div>
+
+                    <div className="rounded-3xl border bg-white p-6 shadow-sm overflow-visible relative z-10 flex justify-between items-center">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        Property Details
+                      </h3>
+
+                      <ExtraFilter
+                        setBeds={setBedroom}
+                        setBaths={setBathroom}
+                        beds={bedroom}
+                        baths={bathroom}
+                      />
+                    </div>
+
+                    <div className="rounded-3xl border bg-white p-6 shadow-sm overflow-visible relative z-30 flex justify-between items-center">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        Language
+                      </h3>
+
+                      <DataTableFilterBox
+                        filterKey="language"
+                        title="Language"
+                        options={availableLanguages || []}
+                        setFilterValue={setLanguage}
+                        filterValue={language}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-4 pt-5">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full sm:w-auto h-12 px-8 rounded-2xl text-base"
+                    >
+                      <DataTableResetFilter
+                        isFilterActive={isAnyFilterActive}
+                        onReset={resetFilters}
+                      />
+                    </Button>
+
+                    <Button
+                      onClick={() => setFilters(false)}
+                      type="button"
+                      className="w-full flex-1 h-12 rounded-2xl text-base font-semibold bg-brand hover:bg-brand text-white"
+                    >
+                      See Properties
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          <DataTableResetFilter
             isFilterActive={isAnyFilterActive}
             onReset={resetFilters}
-          /> */}
-          <Button
-            className="ml-auto"
-            variant={"outline"}
-            type="button"
-            onClick={() => setFilters(true)}
-          >
-            <i className="bi-filter"></i> All filters
-          </Button>
+          />
         </Container>
       </section>
 
-      {/* <section className="min-h-[50vh] py-8">
-        <ListingProjectShowcase
-          title="Empire Gardens"
-          category="Apartments"
-          status="Under Construction"
-          developer="Empire Developments"
-          launchPrice="AED 700K"
-          paymentPlan="56 / 44"
-          handover="Q4 2028"
-          description="Empire Gardens will be a residential development located in Dubai Land Residence (DLRC), offering a well-connected community setting. Developed by Empire Developments, the off-plan project will feature apartments designed with efficient layouts and premium finishes."
-          mainImage="https://renspro-uploads.s3.eu-north-1.amazonaws.com/offplan-uploads/7408626d-b6b8-4176-bf35-2d62f3d09efc"
-          topImage="https://renspro-uploads.s3.eu-north-1.amazonaws.com/offplan-uploads/0e8c686f-e698-4c74-8b32-394132c4f444"
-          bottomImage="https://renspro-uploads.s3.eu-north-1.amazonaws.com/offplan-uploads/890e93df-63c4-4b14-b63e-2ca248c6b4ec"
-          onRegisterInterest={() => {
-            console.log("Interest registered");
-          }}
-        />
-      </section> */}
+      {projectId && !gettingprojectData && (
+        <section className="min-h-[50vh] py-8">
+          <ListingProjectShowcase
+            data={projectData}
+            launchPrice="AED 700K"
+            paymentPlan="70/30"
+            onRegisterInterest={() => {
+              console.log("Interested");
+            }}
+          />
+        </section>
+      )}
 
       <section className="min-h-[50vh] py-2">
         <Container>
@@ -242,7 +316,6 @@ const PageWrap = () => {
             <div className="space-y-4">
               {listings &&
                 listings?.data?.data?.map((listing: any) => {
-                  const agentName = "Abdul Alli";
                   const images =
                     (listing?.images || [])
                       .map((img: any) => img?.url)
@@ -276,9 +349,9 @@ const PageWrap = () => {
                                 className={cn(
                                   `px-2 py-0.5 rounded-full`,
                                   listing.dealType.toLowerCase() === "sale" &&
-                                  "bg-purple-200 text-purple-800",
+                                    "bg-purple-200 text-purple-800",
                                   listing.dealType.toLowerCase() === "rent" &&
-                                  "bg-pink-200 text-pink-800",
+                                    "bg-pink-200 text-pink-800",
                                 )}
                               >{`for ${listing.dealType.toLowerCase()}`}</span>
                             </div>
@@ -315,11 +388,11 @@ const PageWrap = () => {
                             ))}
                           </div>
                         </div>
-                        <Link
-                          href={`/search/${listing.id}`}
-                        // className="absolute top-0 left-0 w-full h-full bgr/10 inset-0"
-                        >
-                          <div className="p-4 flex flex-col justify-between gap-3">
+                        <div className="p-4 flex flex-col justify-between gap-3">
+                          <Link
+                            href={`/search/${listing.id}`}
+                            // className="absolute top-0 left-0 w-full h-full bgr/10 inset-0"
+                          >
                             <div className="space-y-2">
                               <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>
@@ -333,17 +406,6 @@ const PageWrap = () => {
                                   height={50}
                                   alt=""
                                 />
-                                {/* <div className="capitalize text-xs">
-                                <span
-                                  className={cn(
-                                    `px-2 py-0.5 rounded-full`,
-                                    listing.dealType.toLowerCase() === "sale" &&
-                                      "bg-purple-200 text-purple-800",
-                                    listing.dealType.toLowerCase() === "rent" &&
-                                      "bg-pink-200 text-pink-800",
-                                  )}
-                                >{`for ${listing.dealType.toLowerCase()}`}</span>
-                              </div> */}
                               </div>
 
                               <div className="text-2xl font-bold">
@@ -353,9 +415,6 @@ const PageWrap = () => {
                               <div className="text-sm text-muted-foreground">
                                 {listing.title}
                               </div>
-                            </div>
-
-                            <div className="mt-auto space-y-2">
                               <div className="flex gap-x-4 gap-y-2 text-sm text-muted-foreground">
                                 {(listing?.property_bedroom && (
                                   <div className="flex gap-2 items-center">
@@ -386,7 +445,7 @@ const PageWrap = () => {
                                 {(listing?.completionStatus && (
                                   <div className="flex gap-2 items-center border-l pl-2">
                                     {listing?.completionStatus?.toLowerCase() ===
-                                      "off_plan" ? (
+                                    "off_plan" ? (
                                       <i className="bi-building-exclamation opacity-50"></i>
                                     ) : listing?.completionStatus?.toLowerCase() ===
                                       "ready" ? (
@@ -424,50 +483,58 @@ const PageWrap = () => {
                               </div>
 
                               <div className="flex gap-1 items-center text-xs text-muted-foreground truncate mt-2 font-semibold">
-                                <div>{listing?.location?.name}</div>
-                              </div>
-                            </div>
-
-                            <hr />
-
-                            <div className="grid grid-cols-1 md:grid-cols-2">
-                              <div className="flex w-full items-center gap-2">
-                                <Avatar className="h-8 w-8 rounded-full shadow border">
-                                  <AvatarImage src={listing?.uploader?.image} />
-                                  <AvatarFallback className="rounded-full">
-                                    {getFirstLetter(
-                                      listing.uploader.first_name,
-                                    )}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="text-xs">
-                                  <div>Super Agent</div>
-                                  <div className="font-semibold capitalize gap-1">
-                                    {listing.uploader.first_name}{" "}
-                                    {listing.uploader.last_name}
-                                  </div>
+                                <div>
+                                  {[
+                                    listing?.project?.project_name_en,
+                                    listing?.location?.name,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(", ")}
                                 </div>
                               </div>
-                              <div className="flex gap-2 justify-end">
-                                <Button
-                                  variant="outline"
-                                  className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 shadow-none border-none relative z-10"
-                                  size={"sm"}
-                                >
-                                  <i className="bi-telephone"></i>
-                                  Call
-                                </Button>
-                                <Button
-                                  size={"sm"}
-                                  onClick={() => contactAgent(listing.id)}
-                                  className="bg-green-100 hover:bg-green-200 text-green-800 px-6 shadow-none border-none relative z-10"
-                                >
-                                  <i className="bi-whatsapp"></i>WhatsApp
-                                </Button>
+                            </div>
+                          </Link>
+
+                          <hr />
+                          <div className="grid grid-cols-1 space-y-3 md:grid-cols-2">
+                            <div className="flex w-full items-center gap-2">
+                              <Avatar className="h-8 w-8 rounded-full shadow border">
+                                <AvatarImage src={listing?.uploader?.image} />
+                                <AvatarFallback className="rounded-full">
+                                  {getFirstLetter(listing.uploader.first_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="text-xs">
+                                <div>Super Agent</div>
+                                <div className="font-semibold capitalize gap-1">
+                                  {listing.uploader.first_name}{" "}
+                                  {listing.uploader.last_name}
+                                </div>
                               </div>
                             </div>
+                            <div className="flex gap-2 sm:justify-end">
+                              <Button
+                                variant="outline"
+                                className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 shadow-none border-none relative z-10"
+                                size={"sm"}
+                                onClick={() => {
+                                  (setOpenContact(true),
+                                    setpopupInfo(listing.id));
+                                }}
+                              >
+                                <i className="bi-telephone"></i>
+                                Call
+                              </Button>
+                              <Button
+                                size={"sm"}
+                                onClick={() => contactAgent(listing.id)}
+                                className="bg-green-100 hover:bg-green-200 text-green-800 px-6 shadow-none border-none relative z-10"
+                              >
+                                <i className="bi-whatsapp"></i>WhatsApp
+                              </Button>
+                            </div>
                           </div>
-                        </Link>
+                        </div>
                       </div>
                     </div>
                   );
@@ -479,49 +546,28 @@ const PageWrap = () => {
                   <p className="font-medium">
                     Be the first to hear about new properties
                   </p>
-
-                  <Button
-                    onClick={() => setOpen(true)}
-                    className="w-full"
-                    variant={"outline_brand"}
-                  >
-                    <i className="bi-bell-fill"></i>
-                    ALERT ME OF NEW PROPERTIES
-                  </Button>
+                  <div>
+                    <Button
+                      onClick={() => setOpen(true)}
+                      className="w-full flex flex-wrap items-center text-xs"
+                      variant={"outline_brand"}
+                    >
+                      <i className="bi-bell-fill"></i>
+                      <p>ALERT ME OF NEW PROPERTIES</p>
+                    </Button>
+                  </div>
                 </div>
-
-                {/* <div className="bg-white border shadow-md rounded-xl overflow-hidden">
-                  <div className="bg-gradient-to-br from-white to-background border-b px-4 py-3 font-semibold text-gray-800">
-                    Useful Links
-                  </div>
-
-                  <div className="p-4 space-y-1">
-                    {links?.map((link: any, index: any) => (
-                      <p
-                        key={index}
-                        className="text-xs text-gray-600 hover:text-blue-600 cursor-pointer transition-colors duration-200 truncate"
-                        title={link}
-                      >
-                        {link}
-                      </p>
-                    ))}
-                  </div>
-                </div> */}
 
                 <div className="space-y-4">
                   {usefulLinksSections.map((section, index) => {
-                    // if (!section.links.length) return null;
-
                     return (
                       <div key={index} className="card !p-0 overflow-hidden">
-                        {/* Header */}
                         <div className="bg-gradient-to-r from-gray-50 to-white border-b px-4 py-3">
                           <h3 className="text-sm font-semibold text-gray-800">
                             {section.title}
                           </h3>
                         </div>
 
-                        {/* Links */}
                         <div className="p-4 flex flex-col gap-2">
                           {section.links.map((link: any, linkIndex: number) => (
                             <a
@@ -542,6 +588,7 @@ const PageWrap = () => {
           </div>
         </Container>
       </section>
+
       <Dialog
         open={isDialogOpen}
         onOpenChange={(open: boolean) => {
@@ -610,6 +657,73 @@ const PageWrap = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog onOpenChange={setOpenContact} open={openContact}>
+        <DialogContent
+          className="sm:max-w-[420px] bg-white rounded-xl p-6"
+          onInteractOutside={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <DialogHeader className="pt-0 pb-2">
+            <DialogTitle className="flex items-center justify-between text-lg font-semibold tracking-tight"></DialogTitle>
+          </DialogHeader>
+
+          <div>
+            {listings &&
+              contactInfo?.map((listing: any) => {
+                return (
+                  <div className="bg-white rounded-lg max-w-md mx-auto flex flex-col justify-center items-center space-y-3">
+                    <h2 className="text-center text-2xl font-semibold">
+                      Contact Us
+                    </h2>
+
+                    <Image
+                      src={listing?.company?.logo || ""}
+                      width={70}
+                      height={70}
+                      alt=""
+                      className="object-cover"
+                    />
+
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <Phone className="w-4 h-4 text-green-600" />
+                      </div>
+
+                      <a
+                        href={`tel:${listing?.uploader?.phone}`}
+                        className="text-xl font-semibold text-brand hover:underline"
+                      >
+                        {listing?.uploader?.phone}
+                      </a>
+                    </div>
+
+                    <hr />
+
+                    <div className="text-center">
+                      <span className="text-gray-500">Agent: </span>
+                      <span className="font-medium">
+                        {listing?.uploader?.first_name}{" "}
+                        {listing?.uploader?.last_name}
+                      </span>
+                    </div>
+
+                    <hr />
+
+                    <div className="text-center">
+                      <p className="text-md">Please quote property reference</p>
+                      <p className="font-bold text-lg">
+                        PropertyXg - {listing?.ref}
+                      </p>
+                      <p className="text-md">when calling us.</p>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog onOpenChange={setOpen} open={open}>
         <DialogContent
           className="sm:max-w-[420px] bg-white rounded-xl p-6"
@@ -663,7 +777,6 @@ const PageWrap = () => {
                   )}
                 />
 
-                {/* Buttons */}
                 <div className="flex gap-3 pt-2">
                   <DialogTrigger asChild>
                     <Button
@@ -686,143 +799,6 @@ const PageWrap = () => {
                 </div>
               </form>
             </Form>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={filters} onOpenChange={setFilters}>
-        <DialogContent
-          className="
-      w-[95vw]
-      max-w-6xl
-      h-[60vh]
-      rounded-3xl
-      bg-white
-      p-0
-      overflow-hidden
-      border-0
-      flex
-      flex-col
-    "
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-
-          <div className="flex items-center justify-between px-8 py-6 border-b shrink-0">
-            <div>
-              <DialogTitle className="text-3xl font-semibold text-gray-900">
-                More Filters
-              </DialogTitle>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Refine your property search with more advanced filters
-              </p>
-            </div>
-          </div>
-
-
-          <div
-            className="flex-1 overflow-y-auto overflow-x-visible px-8 py-6"
-          >
-            <div className="grid grid-cols-1 gap-8">
-
-              <div
-                className="
-            rounded-2xl
-            border
-            p-6
-            overflow-visible
-            relative
-            z-10
-          "
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Price (AED)
-                  </h3>
-
-                  <div className="text-sm text-emerald-600 font-medium">
-                    Flexible
-                  </div>
-                </div>
-
-                <div className="overflow-visible relative z-20">
-                  <PriceFilter
-                    setMaxPrice={setMaxPrice}
-                    setMinPrice={setMinPrice}
-                    minPrice={minPrice}
-                    maxPrice={maxPrice}
-                  />
-                </div>
-              </div>
-
-              <div
-                className="
-            rounded-2xl
-            border
-            p-6
-            overflow-visible
-            relative
-            z-10
-          "
-              >
-                <h3 className="text-lg font-semibold text-gray-900 mb-5">
-                  Property Details
-                </h3>
-
-                <div className="overflow-visible relative z-20">
-                  <ExtraFilter
-                    setBeds={setBedroom}
-                    setBaths={setBathroom}
-                    beds={bedroom}
-                    baths={bathroom}
-                  />
-                </div>
-              </div>
-
-              <div
-                className="
-            rounded-2xl
-            border
-            p-6
-            overflow-visible
-            relative
-            z-30
-          "
-              >
-                <h3 className="text-lg font-semibold text-gray-900 mb-5">
-                  Language
-                </h3>
-
-                <div className="overflow-visible relative z-40 h-auto">
-                  <DataTableFilterBox
-                    filterKey="language"
-                    title="Language"
-                    options={availableLanguages || []}
-                    setFilterValue={setLanguage}
-                    filterValue={language}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t px-8 py-5 bg-white">
-            <div className="flex items-center gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-14 px-8 rounded-2xl text-base"
-              >
-                Reset
-              </Button>
-
-              <Button
-                type="submit"
-                className="flex-1 h-14 rounded-2xl text-base font-semibold bg-brand hover:bg-brand text-white"
-              >
-                See properties
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>

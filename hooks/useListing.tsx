@@ -24,7 +24,9 @@ const useListing = (opt: string = "") => {
   const [copied, setCopied] = useState(false);
   const axiosAuth = useAxiosAuth();
   const [viewMode, setViewMode] = useState<"table" | "card">(() => {
-    const savedViewMode = localStorage ? localStorage.getItem("propViewMode") : "card";
+    const savedViewMode = localStorage
+      ? localStorage.getItem("propViewMode")
+      : "card";
     return savedViewMode === "card" ? "card" : "table";
   });
   const [filterStatus, setFilterStatus] = useQueryState(
@@ -99,7 +101,7 @@ const useListing = (opt: string = "") => {
   );
   const [projectId, setProject] = useQueryState(
     "projectId",
-    searchParams.status.withOptions({ shallow: false }).withDefault("")
+    searchParams.status.withOptions({ shallow: false }).withDefault(""),
   );
 
   const [listType, setListType] = useQueryState(
@@ -134,7 +136,7 @@ const useListing = (opt: string = "") => {
     setBathroom(null);
     setAssignedTo(null);
     setProject(null);
-    setLanguage(null)
+    setLanguage(null);
   }, [setSearchQuery, setlistingCategoryId]);
 
   const dealTypeOptions = [
@@ -184,7 +186,21 @@ const useListing = (opt: string = "") => {
       }));
       return modifiedData;
     },
-    enabled: false
+    enabled: false,
+  });
+
+  const { data: projectData, isLoading: gettingprojectData } = useQuery({
+    queryKey: [
+      "project",
+      {
+        projectId,
+      },
+    ],
+    queryFn: async () => {
+      const response = await axiosAuth.get(`/dxb-projects/${projectId}`);
+      const result = response?.data?.data;
+      return result;
+    },
   });
 
   const { data: listings, isLoading: gettingListings } = useQuery({
@@ -202,7 +218,8 @@ const useListing = (opt: string = "") => {
         bedroom,
         bathroom,
         language,
-        projectId
+        projectId,
+        opt
       },
     ],
     queryFn: async () => {
@@ -498,7 +515,8 @@ const useListing = (opt: string = "") => {
     setlistingCategoryId,
     location,
     setLocation,
-    projectId, setProject,
+    projectId,
+    setProject,
     listType,
     setListType,
     searchQuery,
@@ -560,7 +578,9 @@ const useListing = (opt: string = "") => {
     listingsRecommendations,
     gettingRecommendations,
     allcategories,
-    isLoadingCategory
+    isLoadingCategory,
+    projectData,
+    gettingprojectData,
   };
 };
 
