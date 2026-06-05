@@ -17,7 +17,7 @@ export const searchParams = {
   agent: parseAsString,
   listType: parseAsString,
   minPrice: parseAsString,
-  max: parseAsString,
+  maxPrice: parseAsString,
   name: parseAsString,
 };
 

@@ -60,13 +60,13 @@ const useListing = (opt: string = "") => {
     "minPrice",
     searchParams.q
       .withOptions({ shallow: false, throttleMs: 1000 })
-      .withDefault("1000"),
+      .withDefault(""),
   );
   const [maxPrice, setMaxPrice] = useQueryState(
     "maxPrice",
     searchParams.q
       .withOptions({ shallow: false, throttleMs: 1000 })
-      .withDefault("1000000000000000000"),
+      .withDefault(""),
   );
   const [bedroom, setBedroom] = useQueryState(
     "bedroom",
@@ -106,7 +106,7 @@ const useListing = (opt: string = "") => {
 
   const [listType, setListType] = useQueryState(
     "dealType",
-    searchParams.status.withOptions({ shallow: false }).withDefault("SALE"),
+    searchParams.status.withOptions({ shallow: false }).withDefault(""),
   );
 
   const [language, setLanguage] = useQueryState(
@@ -137,6 +137,7 @@ const useListing = (opt: string = "") => {
     setAssignedTo(null);
     setProject(null);
     setLanguage(null);
+    setCurrentPage(null)
   }, [setSearchQuery, setlistingCategoryId]);
 
   const dealTypeOptions = [
@@ -146,6 +147,7 @@ const useListing = (opt: string = "") => {
 
   const isAnyFilterActive = useMemo(() => {
     return (
+      !!currentPage ||
       !!projectId ||
       !!language ||
       !!searchQuery ||
@@ -160,6 +162,7 @@ const useListing = (opt: string = "") => {
       !!maxPrice
     );
   }, [
+    currentPage,
     projectId,
     language,
     searchQuery,

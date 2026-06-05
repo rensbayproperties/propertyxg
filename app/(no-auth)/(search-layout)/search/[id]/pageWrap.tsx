@@ -92,7 +92,28 @@ const PageWrap = ({ id }: { id: string }) => {
   const [openWhatsappModal, setShowWhatsappModal] = useState(false);
   const [openContact, setOpenContact] = useState(false);
 
-  if (gettingListings) return <p className="p-10">Loading...</p>;
+  if (gettingListings)
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-4">
+
+          <div className="relative flex items-center justify-center">
+            <div className="h-16 w-16 rounded-full border-4 border-purple-200"></div>
+
+            <div className="absolute h-16 w-16 rounded-full border-4 border-t-purple-600 border-r-purple-500 border-b-transparent border-l-transparent animate-spin"></div>
+          </div>
+
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-purple-700 tracking-wide">
+              PropertyXg
+            </h1>
+            <p className="text-sm text-purple-400 mt-1 animate-pulse">
+              Loading listing...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
 
   const images = listings?.data?.images?.map((img: any) => img.url) || [];
 
@@ -648,17 +669,17 @@ const PageWrap = ({ id }: { id: string }) => {
                       const body = encodeURIComponent(
                         `Hello,
 
-I am interested in the following property:
+                           I am interested in the following property:
 
-Property: ${listings?.data?.title || ""}
-Location: ${listings?.data?.location?.name || ""}
-Price: ${formatMoney(listings?.data?.price)}
+                           Property: ${listings?.data?.title || ""}
+                           Location: ${listings?.data?.location?.name || ""}
+                           Price: ${formatMoney(listings?.data?.price)}
 
-Could you please provide additional information regarding availability and viewing arrangements?
+                           Could you please provide additional information regarding availability and viewing arrangements?
 
-Thank you and I look forward to your response.
+                           Thank you and I look forward to your response.
 
-Kind regards,`,
+                           Kind regards,`,
                       );
 
                       window.location.href = `mailto:${listings?.data?.uploader?.email}?subject=${subject}&body=${body}`;
@@ -679,11 +700,43 @@ Kind regards,`,
                   </Button>
 
                   <Button
-                    size={"sm"}
-                    onClick={() => contactAgent(listings?.data?.id)}
-                    className="w-full bg-green-200 hover:bg-green-200 text-green-800"
+                    size="sm"
+                    className="bg-green-100 text-green-800 hover:bg-green-200 border-none"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const fullName =
+                        `${listings?.data?.uploader?.first_name || ""} ${
+                          listings?.data?.uploader?.last_name || ""
+                        }`.trim();
+
+                      const phone = String(
+                        listings?.data?.uploader?.whatsapp || "",
+                      ).replace(/\D/g, "");
+
+                      const message = encodeURIComponent(
+                        `Hi ${fullName},
+
+                                       I am interested in the following property:
+                                
+                                       Property: ${listings?.data?.title || ""},
+                                       Location: ${listings?.data?.location?.name || ""},
+                                       Price: ${formatMoney(listings?.data?.price)},
+                                
+                                       Could you please provide additional information regarding availability and viewing arrangements?
+                                
+                                       Thank you and I look forward to your response.
+                                
+                                       Kind regards,`,
+                      );
+
+                      window.open(
+                        `https://wa.me/${phone}?text=${message}`,
+                        "_blank",
+                      );
+                    }}
                   >
-                    <i className="bi-whatsapp"></i>WhatsApp
+                    <i className="bi-whatsapp"></i>
+                    WhatsApp
                   </Button>
                 </div>
 

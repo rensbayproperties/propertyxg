@@ -42,6 +42,7 @@ import { useRouter } from "next/navigation";
 const PageWrap = ({ slug }: { slug: string }) => {
   const {
     companyDetails,
+    gettingcompanyDetails,
     isDialogOpen,
     setIsDialogOpen,
     setSelectedListingId,
@@ -81,9 +82,32 @@ const PageWrap = ({ slug }: { slug: string }) => {
 
   const router = useRouter();
 
+  const [pageGroup, setPageGroup] = useState(0);
+
+  const pagesPerGroup = 10;
+
+  const startPage = pageGroup * pagesPerGroup + 1;
+  const endPage = Math.min(
+    startPage + pagesPerGroup - 1,
+    companyDetails?.listings?.meta.totalPages,
+  );
+
+  const visiblePages = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, index) => startPage + index,
+  );
+
   const [activeIndexes, setActiveIndexes] = useState<Record<string, number>>(
     {},
   );
+
+  const [tempMinPrice, setTempMinPrice] = useState(minPrice);
+  const [tempMaxPrice, setTempMaxPrice] = useState(maxPrice);
+
+  const [tempBedroom, setTempBedroom] = useState(bedroom);
+  const [tempBathroom, setTempBathroom] = useState(bathroom);
+
+  const [tempLanguage, setTempLanguage] = useState(language);
 
   const next = (id: string, length: number) => {
     setActiveIndexes((prev) => ({
@@ -132,6 +156,28 @@ const PageWrap = ({ slug }: { slug: string }) => {
   const contactAgentInfo = companyDetails?.agents?.filter(
     (info: any) => info.id === popupAgent,
   );
+
+  if (gettingcompanyDetails)
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative flex items-center justify-center">
+            <div className="h-16 w-16 rounded-full border-4 border-purple-200"></div>
+
+            <div className="absolute h-16 w-16 rounded-full border-4 border-t-purple-600 border-r-purple-500 border-b-transparent border-l-transparent animate-spin"></div>
+          </div>
+
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-purple-700 tracking-wide">
+              PropertyXg
+            </h1>
+            <p className="text-sm text-purple-400 mt-1 animate-pulse">
+              Loading company listings...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
 
   return (
     <div>
@@ -217,13 +263,12 @@ const PageWrap = ({ slug }: { slug: string }) => {
                     <div>
                       <Sheet>
                         <SheetTrigger>
-                          {/* <Menu size={24} /> */}
                           <Button className="ml-auto" variant={"outline"}>
                             <i className="bi-filter"></i> All filters
                           </Button>
                         </SheetTrigger>
                         <SheetContent className="z-[99999]">
-                          <div className="relative w-full flex flex-col space-y-5">
+                          <div className="relative w-full flex flex-col justify-between h-full space-y-5">
                             <div className="flex flex-col items-start justify-between py-6 border-b shrink-0">
                               <h2 className="text-lg lg:text-lg font-bold text-gray-900">
                                 More Filters
@@ -235,67 +280,88 @@ const PageWrap = ({ slug }: { slug: string }) => {
                               </p>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-6">
-                              <div className="rounded-3xl border bg-white shadow-sm overflow-visible relative z-10 flex flex-col sm:flex-row sm:p-6 space-y-3 justify-between items-center">
-                                <h3 className="text-sm font-semibold text-gray-900">
-                                  Price (AED)
-                                </h3>
+                            <div className="flex flex-col justify-between items-center w-full h-full">
+                              <div className="grid grid-cols-1 w-[100%] gap-6">
+                                <div className="rounded-3xl border bg-white shadow-sm overflow-visible relative z-10 flex p-4 justify-between items-center">
+                                  <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                                    Price (AED)
+                                  </h3>
 
-                                <PriceFilter
-                                  setMaxPrice={setMaxPrice}
-                                  setMinPrice={setMinPrice}
-                                  minPrice={minPrice}
-                                  maxPrice={maxPrice}
-                                />
+                                  <PriceFilter
+                                    minPrice={tempMinPrice}
+                                    maxPrice={tempMaxPrice}
+                                    setMinPrice={setTempMinPrice}
+                                    setMaxPrice={setTempMaxPrice}
+                                    className="w-[50%] p-2 flex justify-between items-center"
+                                  />
+                                </div>
+
+                                <div className="rounded-3xl border bg-white p-4 shadow-sm overflow-visible relative z-10 flex justify-between items-center">
+                                  <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                                    Bed & Bath
+                                  </h3>
+
+                                  <ExtraFilter
+                                    beds={tempBedroom}
+                                    baths={tempBathroom}
+                                    setBeds={setTempBedroom}
+                                    setBaths={setTempBathroom}
+                                    className="w-[60%] p-2 flex justify-between items-center"
+                                  />
+                                </div>
+
+                                <div className="rounded-3xl border bg-white p-4 shadow-sm overflow-visible relative z-30 flex justify-between items-center">
+                                  <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                                    Language
+                                  </h3>
+
+                                  <DataTableFilterBox
+                                    title="Language"
+                                    options={availableLanguages || []}
+                                    filterValue={tempLanguage}
+                                    setFilterValue={setTempLanguage}
+                                    className="w-[70%] p-2 flex justify-between items-center"
+                                  />
+                                </div>
                               </div>
 
-                              <div className="rounded-3xl border bg-white p-6 shadow-sm overflow-visible relative z-10 flex justify-between items-center">
-                                <h3 className="text-sm font-semibold text-gray-900">
-                                  Property Details
-                                </h3>
+                              <div className="flex flex-col sm:flex-row items-center gap-4 pt-5">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-full sm:w-auto h-12 px-8 rounded-2xl text-base"
+                                >
+                                  <DataTableResetFilter
+                                    isFilterActive={isAnyFilterActive}
+                                    onReset={resetFilters}
+                                  />
+                                </Button>
 
-                                <ExtraFilter
-                                  setBeds={setBedroom}
-                                  setBaths={setBathroom}
-                                  beds={bedroom}
-                                  baths={bathroom}
-                                />
+                                <Button
+                                  type="button"
+                                  className="w-full flex-1 h-12 rounded-2xl text-base font-semibold bg-brand hover:bg-brand text-white"
+                                  onClick={async () => {
+                                    const updates: Promise<any>[] = [];
+
+                                    if (tempMinPrice)
+                                      updates.push(setMinPrice(tempMinPrice));
+                                    if (tempMaxPrice)
+                                      updates.push(setMaxPrice(tempMaxPrice));
+                                    if (tempBedroom)
+                                      updates.push(setBedroom(tempBedroom));
+                                    if (tempBathroom)
+                                      updates.push(setBathroom(tempBathroom));
+                                    if (tempLanguage)
+                                      updates.push(setLanguage(tempLanguage));
+
+                                    await Promise.all(updates);
+
+                                    setFilters(false);
+                                  }}
+                                >
+                                  See Properties
+                                </Button>
                               </div>
-
-                              <div className="rounded-3xl border bg-white p-6 shadow-sm overflow-visible relative z-30 flex justify-between items-center">
-                                <h3 className="text-sm font-semibold text-gray-900">
-                                  Language
-                                </h3>
-
-                                <DataTableFilterBox
-                                  filterKey="language"
-                                  title="Language"
-                                  options={availableLanguages || []}
-                                  setFilterValue={setLanguage}
-                                  filterValue={language}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row items-center gap-4 pt-5">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full sm:w-auto h-12 px-8 rounded-2xl text-base"
-                              >
-                                <DataTableResetFilter
-                                  isFilterActive={isAnyFilterActive}
-                                  onReset={resetFilters}
-                                />
-                              </Button>
-
-                              <Button
-                                onClick={() => setFilters(false)}
-                                type="button"
-                                className="w-full flex-1 h-12 rounded-2xl text-base font-semibold bg-brand hover:bg-brand text-white"
-                              >
-                                See Properties
-                              </Button>
                             </div>
                           </div>
                         </SheetContent>
@@ -309,6 +375,11 @@ const PageWrap = ({ slug }: { slug: string }) => {
                 </div>
 
                 {companyDetails &&
+                companyDetails?.listings?.data?.length < 1 ? (
+                  <div className="text-brand bg-purple-50 border border-brand rounded flex justify-center items-center p-5">
+                    Sorry, no listing match your search
+                  </div>
+                ) : (
                   companyDetails?.listings?.data?.map((listing: any) => {
                     const images =
                       (listing?.images || [])
@@ -500,7 +571,7 @@ const PageWrap = ({ slug }: { slug: string }) => {
 
                             <hr />
 
-                            <div className="grid grid-cols-1 md:grid-cols-2">
+                            <div className="grid grid-cols-1 space-y-3 md:grid-cols-2">
                               <div className="flex w-full items-center gap-2">
                                 <Avatar className="h-8 w-8 rounded-full shadow border">
                                   <AvatarImage src={listing?.uploader?.image} />
@@ -518,7 +589,7 @@ const PageWrap = ({ slug }: { slug: string }) => {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex gap-2 justify-end">
+                              <div className="flex gap-2 sm:justify-end">
                                 <Button
                                   variant="outline"
                                   className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 shadow-none border-none relative z-10"
@@ -533,14 +604,43 @@ const PageWrap = ({ slug }: { slug: string }) => {
                                   Call
                                 </Button>
                                 <Button
-                                  size={"sm"}
+                                  size="sm"
+                                  className="bg-green-100 text-green-800 hover:bg-green-200 border-none"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    contactAgent(listing.id);
+                                    const fullName =
+                                      `${listing.uploader.first_name || ""} ${
+                                        listing.uploader.last_name || ""
+                                      }`.trim();
+
+                                    const phone = String(
+                                      listing.uploader.whatsapp || "",
+                                    ).replace(/\D/g, "");
+
+                                    const message = encodeURIComponent(
+                                      `Hi ${fullName},
+
+                                       I am interested in the following property:
+                                
+                                       Property: ${listing?.title || ""},
+                                       Location: ${listing?.location?.name || ""},
+                                       Price: ${formatMoney(listing?.price)},
+                                
+                                       Could you please provide additional information regarding availability and viewing arrangements?
+                                
+                                       Thank you and I look forward to your response.
+                                
+                                       Kind regards,`,
+                                    );
+
+                                    window.open(
+                                      `https://wa.me/${phone}?text=${message}`,
+                                      "_blank",
+                                    );
                                   }}
-                                  className="bg-green-100 hover:bg-green-200 text-green-800 px-6 shadow-none border-none relative z-10"
                                 >
-                                  <i className="bi-whatsapp"></i>WhatsApp
+                                  <i className="bi-whatsapp"></i>
+                                  WhatsApp
                                 </Button>
                               </div>
                             </div>
@@ -548,7 +648,42 @@ const PageWrap = ({ slug }: { slug: string }) => {
                         </div>
                       </div>
                     );
-                  })}
+                  })
+                )}
+
+                <div className="flex items-center justify-center gap-2 py-3 flex-wrap">
+                  {pageGroup > 0 && (
+                    <button
+                      onClick={() => setPageGroup((prev) => prev - 1)}
+                      className="px-4 py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      Prev
+                    </button>
+                  )}
+
+                  {visiblePages.map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-11 w-11 rounded-md border transition font-medium ${
+                        currentPage === page
+                          ? "bg-purple-50 text-purple-700 border-purple-500"
+                          : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  {endPage < companyDetails?.listings?.meta.totalPages && (
+                    <button
+                      onClick={() => setPageGroup((prev) => prev + 1)}
+                      className="px-4 py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      Next
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -562,14 +697,14 @@ const PageWrap = ({ slug }: { slug: string }) => {
                           router.push(`/company/${slug}/${agent.id}`)
                         }
                       >
-                        <div className="grid grid-cols-1 md:grid-cols-[30%_70%] gap-0 h-[250px]">
+                        <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-0">
                           {/* IMAGE */}
                           <div className="relative min-h-[200px] md:h-full">
                             <Image
                               src={agent?.image || ""}
                               alt="Agent"
                               fill
-                              className="object-cover"
+                              className="object-fill"
                             />
                           </div>
 

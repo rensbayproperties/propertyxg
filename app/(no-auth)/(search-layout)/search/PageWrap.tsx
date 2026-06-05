@@ -47,6 +47,7 @@ const PageWrap = () => {
     language,
     setLanguage,
     listings,
+    gettingListings,
     isDialogOpen,
     setIsDialogOpen,
     setSelectedListingId,
@@ -84,6 +85,8 @@ const PageWrap = () => {
     isLoadingCategory,
     projectData,
     gettingprojectData,
+    setCurrentPage,
+    currentPage,
   } = useListing();
 
   const { formAlert, onSubmitAlert, isPending } = usePublicAlert();
@@ -96,6 +99,20 @@ const PageWrap = () => {
   const [openContact, setOpenContact] = useState(false);
   const [filters, setFilters] = useState(false);
   const [LinkLocation, setLinkLocation] = useState("");
+
+  const [pageGroup, setPageGroup] = useState(0);
+  const pagesPerGroup = 10;
+
+  const startPage = pageGroup * pagesPerGroup + 1;
+  const endPage = Math.min(
+    startPage + pagesPerGroup - 1,
+    listings?.data?.meta?.totalPages,
+  );
+
+  const visiblePages = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, index) => startPage + index,
+  );
 
   const next = (id: string, length: number) => {
     setActiveIndexes((prev) => ({
@@ -158,6 +175,38 @@ const PageWrap = () => {
     (info: any) => info.id === popupInfo,
   );
 
+  const [tempMinPrice, setTempMinPrice] = useState(minPrice);
+  const [tempMaxPrice, setTempMaxPrice] = useState(maxPrice);
+
+  const [tempBedroom, setTempBedroom] = useState(bedroom);
+  const [tempBathroom, setTempBathroom] = useState(bathroom);
+
+  const [tempLanguage, setTempLanguage] = useState(language);
+
+  if (gettingListings)
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-4">
+          {/* Spinner */}
+          <div className="relative flex items-center justify-center">
+            <div className="h-16 w-16 rounded-full border-4 border-purple-200"></div>
+
+            <div className="absolute h-16 w-16 rounded-full border-4 border-t-purple-600 border-r-purple-500 border-b-transparent border-l-transparent animate-spin"></div>
+          </div>
+
+          {/* Brand Name */}
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-purple-700 tracking-wide">
+              PropertyXg
+            </h1>
+            <p className="text-sm text-purple-400 mt-1 animate-pulse">
+              Loading amazing listings...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+
   return (
     <div className="bg-gradient-to-ts from-gray-50 to-white bg-background">
       {/* <Container className="pt-8 space-y-2">
@@ -205,13 +254,12 @@ const PageWrap = () => {
           <div>
             <Sheet>
               <SheetTrigger>
-                {/* <Menu size={24} /> */}
                 <Button className="ml-auto" variant={"outline"}>
                   <i className="bi-filter"></i> All filters
                 </Button>
               </SheetTrigger>
               <SheetContent className="z-[99999]">
-                <div className="relative w-full flex flex-col space-y-5">
+                <div className="relative w-full flex flex-col h-full space-y-5">
                   <div className="flex flex-col items-start justify-between py-6 border-b shrink-0">
                     <h2 className="text-lg lg:text-lg font-bold text-gray-900">
                       More Filters
@@ -222,67 +270,88 @@ const PageWrap = () => {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-6">
-                    <div className="rounded-3xl border bg-white shadow-sm overflow-visible relative z-10 flex flex-col sm:flex-row sm:p-6 space-y-3 justify-between items-center">
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        Price (AED)
-                      </h3>
+                  <div className="flex flex-col justify-between items-center w-full h-full">
+                    <div className="grid grid-cols-1 w-[100%] gap-6">
+                      <div className="rounded-3xl border bg-white shadow-sm overflow-visible relative z-10 flex p-4 justify-between items-center">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                          Price (AED)
+                        </h3>
 
-                      <PriceFilter
-                        setMaxPrice={setMaxPrice}
-                        setMinPrice={setMinPrice}
-                        minPrice={minPrice}
-                        maxPrice={maxPrice}
-                      />
+                        <PriceFilter
+                          minPrice={tempMinPrice}
+                          maxPrice={tempMaxPrice}
+                          setMinPrice={setTempMinPrice}
+                          setMaxPrice={setTempMaxPrice}
+                          className="w-[50%] p-2 flex justify-between items-center"
+                        />
+                      </div>
+
+                      <div className="rounded-3xl border bg-white p-4 shadow-sm overflow-visible relative z-10 flex justify-between items-center">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                          Bed & Bath
+                        </h3>
+
+                        <ExtraFilter
+                          beds={tempBedroom}
+                          baths={tempBathroom}
+                          setBeds={setTempBedroom}
+                          setBaths={setTempBathroom}
+                          className="w-[60%] p-2 flex justify-between items-center"
+                        />
+                      </div>
+
+                      <div className="rounded-3xl border bg-white p-4 shadow-sm overflow-visible relative z-30 flex justify-between items-center">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                          Language
+                        </h3>
+
+                        <DataTableFilterBox
+                          title="Language"
+                          options={availableLanguages || []}
+                          filterValue={tempLanguage}
+                          setFilterValue={setTempLanguage}
+                          className="w-[70%] p-2 flex justify-between items-center"
+                        />
+                      </div>
                     </div>
 
-                    <div className="rounded-3xl border bg-white p-6 shadow-sm overflow-visible relative z-10 flex justify-between items-center">
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        Property Details
-                      </h3>
+                    <div className="flex flex-col sm:flex-row items-center gap-4 pt-5">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full sm:w-auto h-12 px-8 rounded-2xl text-base"
+                      >
+                        <DataTableResetFilter
+                          isFilterActive={isAnyFilterActive}
+                          onReset={resetFilters}
+                        />
+                      </Button>
 
-                      <ExtraFilter
-                        setBeds={setBedroom}
-                        setBaths={setBathroom}
-                        beds={bedroom}
-                        baths={bathroom}
-                      />
+                      <Button
+                        type="button"
+                        className="w-full flex-1 h-12 rounded-2xl text-base font-semibold bg-brand hover:bg-brand text-white"
+                        onClick={async () => {
+                          const updates: Promise<any>[] = [];
+
+                          if (tempMinPrice)
+                            updates.push(setMinPrice(tempMinPrice));
+                          if (tempMaxPrice)
+                            updates.push(setMaxPrice(tempMaxPrice));
+                          if (tempBedroom)
+                            updates.push(setBedroom(tempBedroom));
+                          if (tempBathroom)
+                            updates.push(setBathroom(tempBathroom));
+                          if (tempLanguage)
+                            updates.push(setLanguage(tempLanguage));
+
+                          await Promise.all(updates);
+
+                          setFilters(false);
+                        }}
+                      >
+                        See Properties
+                      </Button>
                     </div>
-
-                    <div className="rounded-3xl border bg-white p-6 shadow-sm overflow-visible relative z-30 flex justify-between items-center">
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        Language
-                      </h3>
-
-                      <DataTableFilterBox
-                        filterKey="language"
-                        title="Language"
-                        options={availableLanguages || []}
-                        setFilterValue={setLanguage}
-                        filterValue={language}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-4 pt-5">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full sm:w-auto h-12 px-8 rounded-2xl text-base"
-                    >
-                      <DataTableResetFilter
-                        isFilterActive={isAnyFilterActive}
-                        onReset={resetFilters}
-                      />
-                    </Button>
-
-                    <Button
-                      onClick={() => setFilters(false)}
-                      type="button"
-                      className="w-full flex-1 h-12 rounded-2xl text-base font-semibold bg-brand hover:bg-brand text-white"
-                    >
-                      See Properties
-                    </Button>
                   </div>
                 </div>
               </SheetContent>
@@ -314,231 +383,310 @@ const PageWrap = () => {
           {/* <div className="text-muted-foreground">22,000 listed</div> */}
           <div className="grid grid-cols-1 md:grid-cols-[70%_30%] gap-4 py-4">
             <div className="space-y-4">
-              {listings &&
-                listings?.data?.data?.map((listing: any) => {
-                  const images =
-                    (listing?.images || [])
-                      .map((img: any) => img?.url)
-                      .filter(Boolean) || [];
+              <div className="space-y-4">
+                {listings && listings?.data?.data?.length < 1 ? (
+                  <div className="text-brand bg-purple-50 border border-brand rounded flex justify-center items-center p-5">
+                    Sorry, no listing match your search
+                  </div>
+                ) : (
+                  listings?.data?.data?.map((listing: any) => {
+                    const images =
+                      (listing?.images || [])
+                        .map((img: any) => img?.url)
+                        .filter(Boolean) || [];
 
-                  const activeIndex = activeIndexes[listing.id] || 0;
-
-                  return (
-                    <div
-                      className="rounded-xl overflow-hidden border bg-white shadow-sm relative"
-                      key={`propp__${listing.id}`}
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-0">
-                        <div className="relative min-h-[260px] md:h-full">
-                          {images.length === 0 ? (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-muted-foreground text-sm gap-2">
-                              <i className="bi-image"></i> No Image
-                            </div>
-                          ) : (
-                            <Image
-                              src={images[activeIndex] || images[0]}
-                              alt="Property"
-                              fill
-                              className="object-cover"
-                            />
-                          )}
-
-                          <div className="absolute top-3 right-3">
-                            <div className="capitalize text-xs">
-                              <span
-                                className={cn(
-                                  `px-2 py-0.5 rounded-full`,
-                                  listing.dealType.toLowerCase() === "sale" &&
-                                    "bg-purple-200 text-purple-800",
-                                  listing.dealType.toLowerCase() === "rent" &&
-                                    "bg-pink-200 text-pink-800",
-                                )}
-                              >{`for ${listing.dealType.toLowerCase()}`}</span>
-                            </div>
-                          </div>
-
-                          {images.length > 1 && (
-                            <>
-                              <button
-                                onClick={() => prev(listing.id, images.length)}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full"
-                              >
-                                ‹
-                              </button>
-                              <button
-                                onClick={() => next(listing.id, images.length)}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full"
-                              >
-                                ›
-                              </button>
-                            </>
-                          )}
-
-                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
-                            {images.map((_: any, i: number) => (
-                              <span
-                                key={i}
-                                className={cn(
-                                  "w-2 h-2 rounded-full",
-                                  i === activeIndex
-                                    ? "bg-white"
-                                    : "bg-white/50",
-                                )}
+                    const activeIndex = activeIndexes[listing.id] || 0;
+                    return (
+                      <div
+                        className="rounded-xl overflow-hidden border bg-white shadow-sm relative"
+                        key={`propp__${listing.id}`}
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-0">
+                          <div className="relative min-h-[260px] md:h-full">
+                            {images.length === 0 ? (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200 text-muted-foreground text-sm gap-2">
+                                <i className="bi-image"></i> No Image
+                              </div>
+                            ) : (
+                              <Image
+                                src={images[activeIndex] || images[0]}
+                                alt="Property"
+                                fill
+                                className="object-cover"
                               />
-                            ))}
-                          </div>
-                        </div>
-                        <div className="p-4 flex flex-col justify-between gap-3">
-                          <Link
-                            href={`/search/${listing.id}`}
-                            // className="absolute top-0 left-0 w-full h-full bgr/10 inset-0"
-                          >
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>
-                                  {listing.created_on
-                                    ? `Listed ${getTimeAgo(listing.created_on)}`
-                                    : ""}
-                                </span>
-                                <Image
-                                  src={listing?.company?.logo || ""}
-                                  width={50}
-                                  height={50}
-                                  alt=""
+                            )}
+
+                            <div className="absolute top-3 right-3">
+                              <div className="capitalize text-xs">
+                                <span
+                                  className={cn(
+                                    `px-2 py-0.5 rounded-full`,
+                                    listing.dealType.toLowerCase() === "sale" &&
+                                      "bg-purple-200 text-purple-800",
+                                    listing.dealType.toLowerCase() === "rent" &&
+                                      "bg-pink-200 text-pink-800",
+                                  )}
+                                >{`for ${listing.dealType.toLowerCase()}`}</span>
+                              </div>
+                            </div>
+
+                            {images.length > 1 && (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    prev(listing.id, images.length)
+                                  }
+                                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full"
+                                >
+                                  ‹
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    next(listing.id, images.length)
+                                  }
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1 rounded-full"
+                                >
+                                  ›
+                                </button>
+                              </>
+                            )}
+
+                            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
+                              {images.map((_: any, i: number) => (
+                                <span
+                                  key={i}
+                                  className={cn(
+                                    "w-2 h-2 rounded-full",
+                                    i === activeIndex
+                                      ? "bg-white"
+                                      : "bg-white/50",
+                                  )}
                                 />
-                              </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="p-4 flex flex-col justify-between gap-3">
+                            <Link
+                              href={`/search/${listing.id}`}
+                              // className="absolute top-0 left-0 w-full h-full bgr/10 inset-0"
+                            >
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                  <span>
+                                    {listing.created_on
+                                      ? `Listed ${getTimeAgo(listing.created_on)}`
+                                      : ""}
+                                  </span>
+                                  <Image
+                                    src={listing?.company?.logo || ""}
+                                    width={50}
+                                    height={50}
+                                    alt=""
+                                  />
+                                </div>
 
-                              <div className="text-2xl font-bold">
-                                {formatMoney(Number(listing?.price))}
-                              </div>
+                                <div className="text-2xl font-bold">
+                                  {formatMoney(Number(listing?.price))}
+                                </div>
 
-                              <div className="text-sm text-muted-foreground">
-                                {listing.title}
+                                <div className="text-sm text-muted-foreground">
+                                  {listing.title}
+                                </div>
+                                <div className="flex gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                                  {(listing?.property_bedroom && (
+                                    <div className="flex gap-2 items-center">
+                                      <BedDouble size={14} />
+                                      <div className="capitalize">
+                                        {listing.property_bedroom}
+                                      </div>
+                                    </div>
+                                  )) || <></>}
+                                  {(listing?.property_bathroom && (
+                                    <div className="flex gap-2 items-center border-l pl-2">
+                                      <Bath size={14} />
+                                      <div>{listing.property_bathroom}</div>
+                                    </div>
+                                  )) || <></>}
+                                  {(listing?.property_size && (
+                                    <div className="flex gap-2 items-center border-l pl-2">
+                                      <Maximize
+                                        size={14}
+                                        className="opacity-50 leading-relaxed"
+                                      />
+                                      <div className="capitalize">
+                                        {listing?.property_size?.toLocaleString() +
+                                          " sqft"}
+                                      </div>
+                                    </div>
+                                  )) || <></>}
+                                  {(listing?.completionStatus && (
+                                    <div className="flex gap-2 items-center border-l pl-2">
+                                      {listing?.completionStatus?.toLowerCase() ===
+                                      "off_plan" ? (
+                                        <i className="bi-building-exclamation opacity-50"></i>
+                                      ) : listing?.completionStatus?.toLowerCase() ===
+                                        "ready" ? (
+                                        <i className="bi bi-check-circle opacity-50"></i>
+                                      ) : (
+                                        <></>
+                                      )}
+                                      <div className="capitalize">
+                                        {listing?.completionStatus
+                                          ?.toLowerCase()
+                                          .replace(/_/g, " ")}
+                                      </div>
+                                    </div>
+                                  )) || <></>}
+                                  {(listing?.furnished && (
+                                    <div className="flex gap-2 items-center border-l pl-2">
+                                      <i className="bi-house-check opacity-50"></i>
+                                      <div className="capitalize">
+                                        Furnished
+                                      </div>
+                                    </div>
+                                  )) || <></>}
+                                  {(listing?.distres && (
+                                    <div className="flex gap-2 items-center border-l pl-2">
+                                      <i className="bi bi-exclamation-triangle"></i>
+                                      <div className="capitalize">Distress</div>
+                                    </div>
+                                  )) || <></>}
+                                  {(listing?.category && (
+                                    <div className="flex gap-2 items-center border-l pl-2">
+                                      <i className="bi bi-buildings"></i>
+                                      <div className="capitalize">
+                                        {listing?.category?.name}
+                                      </div>
+                                    </div>
+                                  )) || <></>}
+                                </div>
+
+                                <div className="flex gap-1 items-center text-xs text-muted-foreground truncate mt-2 font-semibold">
+                                  <div>
+                                    {[
+                                      listing?.project?.project_name_en,
+                                      listing?.location?.name,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(", ")}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                                {(listing?.property_bedroom && (
-                                  <div className="flex gap-2 items-center">
-                                    <BedDouble size={14} />
-                                    <div className="capitalize">
-                                      {listing.property_bedroom}
-                                    </div>
-                                  </div>
-                                )) || <></>}
-                                {(listing?.property_bathroom && (
-                                  <div className="flex gap-2 items-center border-l pl-2">
-                                    <Bath size={14} />
-                                    <div>{listing.property_bathroom}</div>
-                                  </div>
-                                )) || <></>}
-                                {(listing?.property_size && (
-                                  <div className="flex gap-2 items-center border-l pl-2">
-                                    <Maximize
-                                      size={14}
-                                      className="opacity-50 leading-relaxed"
-                                    />
-                                    <div className="capitalize">
-                                      {listing?.property_size?.toLocaleString() +
-                                        " sqft"}
-                                    </div>
-                                  </div>
-                                )) || <></>}
-                                {(listing?.completionStatus && (
-                                  <div className="flex gap-2 items-center border-l pl-2">
-                                    {listing?.completionStatus?.toLowerCase() ===
-                                    "off_plan" ? (
-                                      <i className="bi-building-exclamation opacity-50"></i>
-                                    ) : listing?.completionStatus?.toLowerCase() ===
-                                      "ready" ? (
-                                      <i className="bi bi-check-circle opacity-50"></i>
-                                    ) : (
-                                      <></>
+                            </Link>
+
+                            <hr />
+                            <div className="grid grid-cols-1 space-y-3 md:grid-cols-2">
+                              <div className="flex w-full items-center gap-2">
+                                <Avatar className="h-8 w-8 rounded-full shadow border">
+                                  <AvatarImage src={listing?.uploader?.image} />
+                                  <AvatarFallback className="rounded-full">
+                                    {getFirstLetter(
+                                      listing.uploader.first_name,
                                     )}
-                                    <div className="capitalize">
-                                      {listing?.completionStatus
-                                        ?.toLowerCase()
-                                        .replace(/_/g, " ")}
-                                    </div>
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="text-xs">
+                                  <div>Super Agent</div>
+                                  <div className="font-semibold capitalize gap-1">
+                                    {listing.uploader.first_name}{" "}
+                                    {listing.uploader.last_name}
                                   </div>
-                                )) || <></>}
-                                {(listing?.furnished && (
-                                  <div className="flex gap-2 items-center border-l pl-2">
-                                    <i className="bi-house-check opacity-50"></i>
-                                    <div className="capitalize">Furnished</div>
-                                  </div>
-                                )) || <></>}
-                                {(listing?.distres && (
-                                  <div className="flex gap-2 items-center border-l pl-2">
-                                    <i className="bi bi-exclamation-triangle"></i>
-                                    <div className="capitalize">Distress</div>
-                                  </div>
-                                )) || <></>}
-                                {(listing?.category && (
-                                  <div className="flex gap-2 items-center border-l pl-2">
-                                    <i className="bi bi-buildings"></i>
-                                    <div className="capitalize">
-                                      {listing?.category?.name}
-                                    </div>
-                                  </div>
-                                )) || <></>}
-                              </div>
-
-                              <div className="flex gap-1 items-center text-xs text-muted-foreground truncate mt-2 font-semibold">
-                                <div>
-                                  {[
-                                    listing?.project?.project_name_en,
-                                    listing?.location?.name,
-                                  ]
-                                    .filter(Boolean)
-                                    .join(", ")}
                                 </div>
                               </div>
-                            </div>
-                          </Link>
+                              <div className="flex gap-2 sm:justify-end">
+                                <Button
+                                  variant="outline"
+                                  className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 shadow-none border-none relative z-10"
+                                  size={"sm"}
+                                  onClick={() => {
+                                    (setOpenContact(true),
+                                      setpopupInfo(listing.id));
+                                  }}
+                                >
+                                  <i className="bi-telephone"></i>
+                                  Call
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="bg-green-100 text-green-800 hover:bg-green-200 border-none"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const fullName =
+                                      `${listing.uploader.first_name || ""} ${
+                                        listing.uploader.last_name || ""
+                                      }`.trim();
 
-                          <hr />
-                          <div className="grid grid-cols-1 space-y-3 md:grid-cols-2">
-                            <div className="flex w-full items-center gap-2">
-                              <Avatar className="h-8 w-8 rounded-full shadow border">
-                                <AvatarImage src={listing?.uploader?.image} />
-                                <AvatarFallback className="rounded-full">
-                                  {getFirstLetter(listing.uploader.first_name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="text-xs">
-                                <div>Super Agent</div>
-                                <div className="font-semibold capitalize gap-1">
-                                  {listing.uploader.first_name}{" "}
-                                  {listing.uploader.last_name}
-                                </div>
+                                    const phone = String(
+                                      listing.uploader.whatsapp || "",
+                                    ).replace(/\D/g, "");
+
+                                    const message = encodeURIComponent(
+                                      `Hi ${fullName},
+  
+                                         I am interested in the following property:
+                                  
+                                         Property: ${listing?.title || ""},
+                                         Location: ${listing?.location?.name || ""},
+                                         Price: ${formatMoney(listing?.price)},
+                                  
+                                         Could you please provide additional information regarding availability and viewing arrangements?
+                                  
+                                         Thank you and I look forward to your response.
+                                  
+                                         Kind regards,`,
+                                    );
+
+                                    window.open(
+                                      `https://wa.me/${phone}?text=${message}`,
+                                      "_blank",
+                                    );
+                                  }}
+                                >
+                                  <i className="bi-whatsapp"></i>
+                                  WhatsApp
+                                </Button>
                               </div>
-                            </div>
-                            <div className="flex gap-2 sm:justify-end">
-                              <Button
-                                variant="outline"
-                                className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 shadow-none border-none relative z-10"
-                                size={"sm"}
-                                onClick={() => {
-                                  (setOpenContact(true),
-                                    setpopupInfo(listing.id));
-                                }}
-                              >
-                                <i className="bi-telephone"></i>
-                                Call
-                              </Button>
-                              <Button
-                                size={"sm"}
-                                onClick={() => contactAgent(listing.id)}
-                                className="bg-green-100 hover:bg-green-200 text-green-800 px-6 shadow-none border-none relative z-10"
-                              >
-                                <i className="bi-whatsapp"></i>WhatsApp
-                              </Button>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
+              </div>
+              <div className="flex items-center justify-center pt-5 gap-2 flex-wrap">
+                {pageGroup > 0 && (
+                  <button
+                    onClick={() => setPageGroup((prev) => prev - 1)}
+                    className="px-4 py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    Prev
+                  </button>
+                )}
+
+                {visiblePages.map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-11 w-11 rounded-md border transition font-medium ${
+                      currentPage === page
+                        ? "bg-purple-50 text-purple-700 border-purple-500"
+                        : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                {endPage < listings?.data?.meta?.totalPages && (
+                  <button
+                    onClick={() => setPageGroup((prev) => prev + 1)}
+                    className="px-4 py-2 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    Next
+                  </button>
+                )}
+              </div>
             </div>
             <div>
               <div className="sticky top-20 space-y-4">

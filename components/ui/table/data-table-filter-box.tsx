@@ -1,4 +1,6 @@
 "use client";
+
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,9 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { CheckIcon, Filter } from "lucide-react";
-import { Options } from "nuqs";
-import React from "react";
+import { CheckIcon } from "lucide-react";
 
 interface FilterOption {
   value: string;
@@ -28,128 +28,98 @@ interface FilterOption {
 }
 
 interface FilterBoxProps {
-  filterKey: string;
   title: string;
   options: FilterOption[];
-  setFilterValue: (
-    value: string | ((old: string) => string | null) | null,
-    options?: Options<any> | undefined
-  ) => Promise<URLSearchParams>;
   filterValue: string;
+  setFilterValue: React.Dispatch<React.SetStateAction<string>>;
   isLoading?: boolean;
   delimiter?: string;
   className?: string;
 }
 
 export function DataTableFilterBox({
-  filterKey,
   title,
   options,
-  setFilterValue,
   filterValue,
+  setFilterValue,
   isLoading,
-  delimiter,
-  className
+  delimiter = ".",
+  className,
 }: FilterBoxProps) {
   const selectedValuesSet = React.useMemo(() => {
     if (!filterValue) return new Set<string>();
-    const values = filterValue.split(delimiter || ".");
-    return new Set(values.filter((value) => value !== ""));
-  }, [filterValue]);
+    return new Set(filterValue.split(delimiter).filter(Boolean));
+  }, [filterValue, delimiter]);
 
   const handleSelect = (value: string) => {
     const newSet = new Set(selectedValuesSet);
+
     if (newSet.has(value)) {
       newSet.delete(value);
     } else {
       newSet.add(value);
     }
 
-    setFilterValue(Array.from(newSet).join(delimiter || ".") || null);
+    setFilterValue(Array.from(newSet).join(delimiter));
   };
 
-  const resetFilter = () => setFilterValue(null);
+  const resetFilter = () => setFilterValue("");
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" className={className}>
-          {/* <Filter className="mr-2 h-4 w-4" /> */}
-          <span className="text-muted-foreground">{title}</span>
+          <span className="text-xs">{title}</span>
+
           {selectedValuesSet.size > 0 && (
             <>
-              <Separator orientation="vertical" className="mx-2 h-4" />
-              <Badge
-                variant="secondary"
-                className="rounded-sm px-1 font-normal lg:hidden"
-              >
+              <Separator orientation="vertical" className="h-4" />
+              <Badge variant="secondary" className="rounded-sm font-normal">
                 {selectedValuesSet.size}
               </Badge>
-              <div className="hidden space-x-1 lg:flex">
-                {selectedValuesSet.size > 2 ? (
-                  <Badge
-                    variant="secondary"
-                    className="rounded-sm px-1 font-normal"
-                  >
-                    {selectedValuesSet.size} selected
-                  </Badge>
-                ) : (
-                  Array.from(selectedValuesSet).map((value, i) => (
-                    <Badge
-                      variant="secondary"
-                      key={`value_fkey_${i}`}
-                      className="rounded-sm px-1 font-normal"
-                    >
-                      {options.find((option) => option.value === value)
-                        ?.label || value}
-                    </Badge>
-                  ))
-                )}
-              </div>
             </>
           )}
-          <i className="bi-chevron-down"></i>
+
+          <i className="bi-chevron-down" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0 z-[99999]" align="start" >
+
+      <PopoverContent className="w-[200px] p-0 z-[99999]" align="start">
         {isLoading ? (
-          "loading..."
+          <div className="p-2 text-sm">Loading...</div>
         ) : (
           <Command>
             <CommandInput placeholder={title} />
+
             <CommandList>
               <CommandEmpty>No results found.</CommandEmpty>
+
               <CommandGroup>
-                {options.length > 0 ? (
-                  options &&
-                  options?.map((option: any, i: number) => (
-                    <CommandItem
-                      key={`comoptvl__${i}`}
-                      onSelect={() => handleSelect(option.value)}
-                    >
-                      <div
-                        className={cn(
-                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                          selectedValuesSet.has(option.value)
-                            ? "bg-primary text-primary-foreground"
-                            : "opacity-50 [&_svg]:invisible"
-                        )}
-                      >
-                        <CheckIcon className="h-4 w-4" aria-hidden="true" />
-                      </div>
-                      {option.icon && (
-                        <option.icon
-                          className="mr-2 h-4 w-4 text-muted-foreground"
-                          aria-hidden="true"
-                        />
+                {options.map((option, i) => (
+                  <CommandItem
+                    key={`lang_opt_${i}`}
+                    onSelect={() => handleSelect(option.value)}
+                  >
+                    <div
+                      className={cn(
+                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                        selectedValuesSet.has(option.value)
+                          ? "bg-primary text-primary-foreground"
+                          : "opacity-50 [&_svg]:invisible"
                       )}
-                      <span>{option.label}</span>
-                    </CommandItem>
-                  ))
-                ) : (
-                  <p>Loading...</p>
-                )}
+                    >
+                      <CheckIcon className="h-4 w-4" />
+                    </div>
+
+                    {option.icon && (
+                      <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    )}
+
+                    <span>{option.label}</span>
+                  </CommandItem>
+                ))}
               </CommandGroup>
+
               {selectedValuesSet.size > 0 && (
                 <>
                   <CommandSeparator />
