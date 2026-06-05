@@ -13,14 +13,8 @@ import { Options } from "nuqs";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  setMaxPrice: <Shallow>(
-    value: string | ((old: string) => string | null) | null,
-    options?: Options<Shallow> | undefined
-  ) => Promise<URLSearchParams>;
-  setMinPrice: <Shallow>(
-    value: string | ((old: string) => string | null) | null,
-    options?: Options<Shallow> | undefined
-  ) => Promise<URLSearchParams>;
+  setMaxPrice: React.Dispatch<React.SetStateAction<string>>;
+  setMinPrice: React.Dispatch<React.SetStateAction<string>>;
   maxPrice: string;
   minPrice: string;
   className?: string;
@@ -33,20 +27,20 @@ const PriceFilter = ({
   setMinPrice,
   className
 }: Props) => {
-  const [isLoading, startTransition] = useTransition();
-  const handleMinPrice = (value: string) => {
-    setMinPrice(value, { startTransition });
-  };
-  const handleMaxPrice = (value: string) => {
-    setMaxPrice(value, { startTransition });
-  };
+const handleMinPrice = (value: string) => {
+  setMinPrice(value);
+};
+
+const handleMaxPrice = (value: string) => {
+  setMaxPrice(value);
+};
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" className={className}>
           {/* <Tag className="mr-2 h-4 w-4" /> */}
           <span className="text-muted-foreground">Price</span>
-          <ChevronDown className="ml-5 h-4 w-4" />
+          <ChevronDown className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="md:w-80 w-[50vw] z-[99999]">
@@ -63,7 +57,6 @@ const PriceFilter = ({
                 onChange={(e) => handleMinPrice(e.target.value)}
                 className={cn(
                   "w-full md:max-w-sm h-9 bg-white",
-                  isLoading && "animate-pulse"
                 )}
               />
             </div>
@@ -78,7 +71,6 @@ const PriceFilter = ({
                 onChange={(e) => handleMaxPrice(e.target.value)}
                 className={cn(
                   "w-full md:max-w-sm h-9 bg-white",
-                  isLoading && "animate-pulse"
                 )}
               />
             </div>

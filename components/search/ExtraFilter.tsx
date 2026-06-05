@@ -1,28 +1,19 @@
 "use client";
-import React, { useState, useTransition } from "react";
+
+import React from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Tag } from "lucide-react";
-import { Options } from "nuqs";
-import { cn } from "@/lib/utils";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Props {
-  setBaths: <Shallow>(
-    value: string | ((old: string) => string | null) | null,
-    options?: Options<Shallow> | undefined
-  ) => Promise<URLSearchParams>;
-  setBeds: <Shallow>(
-    value: string | ((old: string) => string | null) | null,
-    options?: Options<Shallow> | undefined
-  ) => Promise<URLSearchParams>;
+  setBaths: React.Dispatch<React.SetStateAction<string>>;
+  setBeds: React.Dispatch<React.SetStateAction<string>>;
   baths: string;
   beds: string;
   className?: string;
@@ -33,53 +24,47 @@ const ExtraFilter = ({
   baths,
   setBaths,
   setBeds,
-  className
+  className,
 }: Props) => {
-  const [isLoading, startTransition] = useTransition();
-  const handleBeds = (value: string) => {
-    setBeds(value, { startTransition });
-  };
-  const handleBaths = (value: string) => {
-    setBaths(value, { startTransition });
-  };
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" className={className}>
-          {/* <Tag className="mr-2 h-4 w-4" /> */}
           <span className="text-muted-foreground">Bed / Bath</span>
-          <ChevronDown className="ml-5 h-4 w-4" />
+          <ChevronDown className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
+
       <PopoverContent className="md:w-80 w-[50vw] z-[99999]">
         <div className="space-y-5">
           <div className="grid md:grid-cols-2 gap-4">
+            
+            {/* Beds */}
             <div className="space-y-1">
               <Label htmlFor="beds" className="mb-1">
                 Beds
               </Label>
-              <div>
-                <BedroomBathroomSelect
-                  name="property_bedroom"
-                  label="Bedroom"
-                  onUpdate={(value: string) => handleBeds(value)}
-                  options={["studio", "0", "1", "2", "3", "4", "5", "6", "7", "8"]}
-                />
-              </div>
+
+              <BedroomBathroomSelect
+                value={beds}
+                onUpdate={setBeds}
+                options={["studio", "0", "1", "2", "3", "4", "5", "6", "7", "8"]}
+              />
             </div>
+
+            {/* Baths */}
             <div className="space-y-1">
               <Label htmlFor="baths" className="mb-1">
                 Baths
               </Label>
-              <div>
-                <BedroomBathroomSelect
-                  name="property_bathroom"
-                  label="Bathroom"
-                  onUpdate={(value: string) => handleBaths(value)}
-                  options={["0", "1", "2", "3", "4", "5", "6", "7", "8"]}
-                />
-              </div>
+
+              <BedroomBathroomSelect
+                value={baths}
+                onUpdate={setBaths}
+                options={["0", "1", "2", "3", "4", "5", "6", "7", "8"]}
+              />
             </div>
+
           </div>
         </div>
       </PopoverContent>
@@ -88,36 +73,24 @@ const ExtraFilter = ({
 };
 
 const BedroomBathroomSelect = ({
+  value,
   onUpdate,
   options,
 }: {
-  name: string;
-  label: string;
-  options: string[];
+  value: string;
   onUpdate: (value: string) => void;
+  options: string[];
 }) => {
-  const [val, setVal] = useState("");
-
   return (
     <div className="relative z-[99999999]">
-      <Select
-        onValueChange={(val) => {
-          setVal(val);
-          onUpdate(val);
-        }}
-        value={val}
-      >
+      <Select onValueChange={onUpdate} value={value}>
         <SelectTrigger>
-          <SelectValue placeholder="" />
+          <SelectValue placeholder="Select" />
         </SelectTrigger>
 
         <SelectContent className="z-[999999999]">
           {options.map((s) => (
-            <SelectItem
-              value={s}
-              key={s}
-              className="capitalize"
-            >
+            <SelectItem value={s} key={s} className="capitalize">
               {s}
             </SelectItem>
           ))}

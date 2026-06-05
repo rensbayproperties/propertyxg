@@ -16,6 +16,7 @@ import siteData from "@/constant/site";
 import { cn } from "@/lib/utils";
 import PropXgLogo from "./PropXgLogo";
 import Container from "./Container";
+import useListing from "@/hooks/useListing";
 
 interface RouteProps {
   href: string;
@@ -46,7 +47,9 @@ const routeList: RouteProps[] = [
 ];
 
 const Navbar = ({ className }: { className?: string }) => {
-  const pathname = usePathname();
+  const {setListType} = useListing()
+  
+  const pathname = usePathname(); 
 
   const isActive = (href: string) => {
     // Handle home route
@@ -65,16 +68,48 @@ const Navbar = ({ className }: { className?: string }) => {
     return pathname.startsWith(href);
   };
 
-  const renderNavLink = (route: RouteProps, i: number, isMobile?: boolean) => (
+  const renderNavLink = (route: RouteProps, i: number) => {
+  if (route.label === "Buy") {
+    return (
+      <button
+        key={i}
+        onClick={() => setListType("SALE")}
+        className={`font-medium ${
+          isActive(route.href) ? "text-brand" : "opacity-80"
+        }`}
+      >
+        {route.label}
+      </button>
+    );
+  }
+
+  if (route.label === "Rent") {
+    return (
+      <button
+        key={i}
+        onClick={() => setListType("RENT")}
+        className={`font-medium ${
+          isActive(route.href) ? "text-brand" : "opacity-80"
+        }`}
+      >
+        {route.label}
+      </button>
+    );
+  }
+
+  return (
     <Link
       rel="noreferrer noopener"
       href={route.href}
       key={i}
-      className={`font-medium ${isActive(route.href) ? "text-brand" : "opacity-80"}`}
+      className={`font-medium ${
+        isActive(route.href) ? "text-brand" : "opacity-80"
+      }`}
     >
       {route.label}
     </Link>
   );
+};
 
   return (
     <header className={`top-0 w-full z-[999] bg-white/90 ${className || ""}`}>
@@ -97,28 +132,6 @@ const Navbar = ({ className }: { className?: string }) => {
             </nav>
             <div className="flex items-center gap-4">
               <div className="hidden md:flex gap-4 items-center">
-                {/* <div>
-                  <Sheet>
-                    <SheetTrigger>
-                      <Menu size={24} />
-                    </SheetTrigger>
-                    <SheetContent className="z-[99999]">
-                      <nav className="flex flex-col gap-4">
-                        {routeList.map((route, i) => renderNavLink(route, i))}
-                      </nav>
-                      <Link
-                        rel="noreferrer noopener"
-                        href=""
-                        target="_blank"
-                        className={`border w-full mt-5 ${buttonVariants({
-                          variant: "outline",
-                        })}`}
-                      >
-                        Log
-                      </Link>
-                    </SheetContent>
-                  </Sheet>
-                </div> */}
                 <div>
                   <Link
                     href={`/signin`}

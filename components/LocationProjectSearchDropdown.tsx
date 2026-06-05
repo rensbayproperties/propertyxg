@@ -152,15 +152,8 @@ const LocationProjectSearchDropdown: React.FC<
       ];
     }, [allLocations]);
 
-  /**
-   * FILTERED RESULTS
-   */
   const filteredResults =
     useMemo(() => {
-      /**
-       * DO NOT SHOW ANYTHING
-       * UNTIL USER TYPES
-       */
       if (
         !searchTerm.trim()
       ) {
