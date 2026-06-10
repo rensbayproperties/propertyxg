@@ -11,7 +11,7 @@ const HomeLayout = ({
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar className="border-b" />
       <main className="flex-grow">{children}</main>
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 };

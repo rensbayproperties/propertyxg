@@ -96,7 +96,7 @@ const PropertyCategoryDropdown = ({
         <Button
           variant="outline"
           className={cn(
-            "h-10 px-4 border bg-white shadow-none justify-between min-w-[160px] text-sm font-medium",
+            "h-10 px-4 border bg-white shadow-none justify-between min-w-[160px] text-base font-normal",
             className,
           )}
         >
@@ -105,7 +105,7 @@ const PropertyCategoryDropdown = ({
               ? selectedCategories.length > 2
                 ? `${selectedCategories.length} selected`
                 : selectedCategories.map((item) => item.name).join(", ")
-              : "Category"}
+              : activeTab || "Category"}
           </span>
 
           <ChevronDown size={15} className="opacity-60" />

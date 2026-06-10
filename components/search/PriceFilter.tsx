@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown, Tag } from "lucide-react";
 import { Options } from "nuqs";
 import { cn } from "@/lib/utils";
+import clsx from "clsx";
 
 interface Props {
   setMaxPrice: React.Dispatch<React.SetStateAction<string>>;
@@ -27,18 +28,17 @@ const PriceFilter = ({
   setMinPrice,
   className
 }: Props) => {
-const handleMinPrice = (value: string) => {
-  setMinPrice(value);
-};
+  const handleMinPrice = (value: string) => {
+    setMinPrice(value);
+  };
 
-const handleMaxPrice = (value: string) => {
-  setMaxPrice(value);
-};
+  const handleMaxPrice = (value: string) => {
+    setMaxPrice(value);
+  };
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={className}>
-          {/* <Tag className="mr-2 h-4 w-4" /> */}
+        <Button variant="outline" className={clsx('text-base font-normal', className)}>
           <span className="text-muted-foreground">Price</span>
           <ChevronDown className="h-4 w-4" />
         </Button>

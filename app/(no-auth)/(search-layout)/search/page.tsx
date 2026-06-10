@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   description: "Welcome to CRM Dubai - Your business growth partner",
 };
 
-export default function Search() {
-  return <PageWrap />;
+
+interface PageProps {
+  searchParams: Promise<{ dealType?: string; top_category?: string }>;
+}
+
+export default async function Search({ searchParams }: PageProps) {
+  const params = await searchParams
+  return <PageWrap searchParams={params} />;
 }

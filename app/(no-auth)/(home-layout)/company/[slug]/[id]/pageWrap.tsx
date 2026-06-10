@@ -203,9 +203,8 @@ const PageWrap = ({ id }: { id: string }) => {
                   className="bg-green-100 text-green-800 hover:bg-green-200 border-none"
                   onClick={() => {
                     const fullName =
-                      `${agentDetails?.agent?.first_name || ""} ${
-                        agentDetails?.agent?.last_name || ""
-                      }`.trim();
+                      `${agentDetails?.agent?.first_name || ""} ${agentDetails?.agent?.last_name || ""
+                        }`.trim();
 
                     const phone = String(
                       agentDetails?.agent?.whatsapp || "",
@@ -323,7 +322,7 @@ const PageWrap = ({ id }: { id: string }) => {
                             </h2>
 
                             <p className="text-sm text-gray-500 mt-2">
-                              Refine your property search with advanced filters
+                              Refine your property search with advanced filtersss
                             </p>
                           </div>
 
@@ -581,9 +580,9 @@ const PageWrap = ({ id }: { id: string }) => {
                                 className={cn(
                                   `px-2 py-0.5 rounded-full`,
                                   listing.dealType.toLowerCase() === "sale" &&
-                                    "bg-purple-200 text-purple-800",
+                                  "bg-purple-200 text-purple-800",
                                   listing.dealType.toLowerCase() === "rent" &&
-                                    "bg-pink-200 text-pink-800",
+                                  "bg-pink-200 text-pink-800",
                                 )}
                               >{`for ${listing.dealType.toLowerCase()}`}</span>
                             </div>
@@ -626,7 +625,7 @@ const PageWrap = ({ id }: { id: string }) => {
                             {(listing?.completionStatus && (
                               <div className="flex gap-2 items-center border-l pl-2">
                                 {listing?.completionStatus?.toLowerCase() ===
-                                "off_plan" ? (
+                                  "off_plan" ? (
                                   <i className="bi-building-exclamation opacity-50"></i>
                                 ) : listing?.completionStatus?.toLowerCase() ===
                                   "ready" ? (
@@ -693,9 +692,8 @@ const PageWrap = ({ id }: { id: string }) => {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const fullName =
-                                  `${agentDetails?.agent?.first_name || ""} ${
-                                    agentDetails?.agent?.last_name || ""
-                                  }`.trim();
+                                  `${agentDetails?.agent?.first_name || ""} ${agentDetails?.agent?.last_name || ""
+                                    }`.trim();
 
                                 const phone = String(
                                   agentDetails?.agent?.whatsapp || "",
@@ -748,11 +746,10 @@ const PageWrap = ({ id }: { id: string }) => {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`h-11 w-11 rounded-md border transition font-medium ${
-                      currentPage === page
+                    className={`h-11 w-11 rounded-md border transition font-medium ${currentPage === page
                         ? "bg-purple-50 text-purple-700 border-purple-500"
                         : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
-                    }`}
+                      }`}
                   >
                     {page}
                   </button>

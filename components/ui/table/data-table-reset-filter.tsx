@@ -13,9 +13,9 @@ export function DataTableResetFilter({
   return (
     <>
       {isFilterActive ? (
-        <Button size={"sm"} variant="outline" onClick={onReset} className='text-red-600 border-none '>
-          <i className="bi-arrow-clockwise"></i>
-          Reset
+        <Button variant="outline" onClick={onReset} className="border-none shadow-none opacity-60 px-0">
+          <i className="bi-x-lg"></i>
+          Reset filters
         </Button>
       ) : null}
     </>

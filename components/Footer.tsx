@@ -23,24 +23,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="h-[120vh] flex">
-      <Container>
-        <div className="bg-brand/20 p-12 md:p-20 flex flex-col gap-y-2 rounded">
-          <div className="flexs items-center justify-center text-heading text-4xl text-center leading-[1.2] mx-auto font-semibold">
-            Your business deserve better tools<span className="text-brand">.</span>
-          </div>
-          <div className="flex items-center justify-center text-lg text-center leading-[1.2] max-w-lg mx-auto opacity-60">Join hundreds of agencies and property managers who run their operations smarter with PortalXg</div>
-          <div className="flex gap-3 items-center justify-center mt-4">
-            <Link href="" passHref>
-              <Button variant={"brand"} size={"lg"}>Get Started Free</Button>
-            </Link>
-            <Link href="" passHref>
-              <Button variant={"light"} size={"lg"} className="text-brand">Book a Demo</Button>
-            </Link>
-          </div>
-        </div>
-        {/* <div>© {new Date().getFullYear()} {siteData.name} Ltd. All rights reserved.</div> */}
-      </Container>
+    <footer className="h-[100vh] flex bg-[#565557]">
     </footer>
   );
 };

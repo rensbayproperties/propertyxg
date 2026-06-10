@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import clsx from "clsx";
 
 interface Props {
   setBaths: React.Dispatch<React.SetStateAction<string>>;
@@ -29,8 +30,8 @@ const ExtraFilter = ({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={className}>
-          <span className="text-muted-foreground">Bed / Bath</span>
+        <Button variant="outline" className={clsx('text-base font-normal', className)}>
+          <span className="text-muted-foreground">Beds & Baths</span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
@@ -38,7 +39,7 @@ const ExtraFilter = ({
       <PopoverContent className="md:w-80 w-[50vw] z-[99999]">
         <div className="space-y-5">
           <div className="grid md:grid-cols-2 gap-4">
-            
+
             {/* Beds */}
             <div className="space-y-1">
               <Label htmlFor="beds" className="mb-1">

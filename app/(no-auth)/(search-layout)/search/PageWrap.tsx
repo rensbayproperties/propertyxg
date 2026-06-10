@@ -41,7 +41,11 @@ import ExtraFilter from "@/components/search/ExtraFilter";
 import PriceFilter from "@/components/search/PriceFilter";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-const PageWrap = () => {
+interface PageProps {
+  searchParams: { dealType?: string; top_category?: string };
+}
+
+const PageWrap = ({ searchParams }: PageProps) => {
   const {
     availableLanguages,
     language,
@@ -87,7 +91,7 @@ const PageWrap = () => {
     gettingprojectData,
     setCurrentPage,
     currentPage,
-  } = useListing();
+  } = useListing("", { dealType: searchParams.dealType || "" });
 
   const { formAlert, onSubmitAlert, isPending } = usePublicAlert();
 
@@ -144,9 +148,8 @@ const PageWrap = () => {
       title: "Bedrooms",
       links:
         listingsRecommendations?.suggestedBedrooms?.map((bedroom: string) => ({
-          label: `${bedroom} Bedroom ${
-            listingsRecommendations?.suggestedCategories?.[0] || "Properties"
-          } in ${LinkLocation || "Dubai"}`,
+          label: `${bedroom} Bedroom ${listingsRecommendations?.suggestedCategories?.[0] || "Properties"
+            } in ${LinkLocation || "Dubai"}`,
           href: location
             ? `/search?bedroom=${bedroom}&locationId=${location}`
             : `/search?bedroom=${bedroom}`,
@@ -158,9 +161,8 @@ const PageWrap = () => {
       links:
         listingsRecommendations?.suggestedBathrooms?.map(
           (bathroom: string) => ({
-            label: `${bathroom} Bathroom Properties in ${
-              LinkLocation || "Dubai"
-            }`,
+            label: `${bathroom} Bathroom Properties in ${LinkLocation || "Dubai"
+              }`,
             href: location
               ? `/search?bathroom=${bathroom}?locationId=${location}`
               : `/search?bathroom=${bathroom}`,
@@ -219,149 +221,158 @@ const PageWrap = () => {
         <div className="opacity-60">Explore Dubai properties for sale, rent.</div>
       </Container> */}
       <section className="border-b sticky top-0 shadow-[0_3px_5px_-3px_rgba(0,0,0,0.1)] z-[20] py-4 space-y-2 bg-white">
-        <Container className="flex flex-wrap items-center gap-2 w-full">
-          <DataTableFilter
-            filterKey="listType"
-            title="Purpose"
-            options={dealTypeOptions || []}
-            setFilterValue={setListType}
-            filterValue={listType}
-          />
-
-          <div className="w-full max-w-md">
-            <LocationProjectSearchDropdown
-              onLocationSelect={(selectedItem) => {
-                if (selectedItem.type === "project") {
-                  setProject(String(selectedItem.id));
-                  setLocation(null);
-                  setLinkLocation(String(selectedItem.title));
-                } else {
-                  setLocation(String(selectedItem.id));
-                  setProject(null);
-                  setLinkLocation(selectedItem.title);
-                }
-              }}
+        <Container className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2 w-full">
+            <DataTableFilter
+              filterKey="listType"
+              title="Purpose"
+              options={dealTypeOptions || []}
+              setFilterValue={setListType}
+              filterValue={listType}
             />
-          </div>
 
-          <PropertyCategoryDropdown
-            options={allcategories || []}
-            setFilterValue={setlistingCategoryId}
-            filterValue={listingCategoryId}
-            isLoading={isLoadingCategory}
-          />
+            <div className="w-full max-w-md">
+              <LocationProjectSearchDropdown
+                onLocationSelect={(selectedItem) => {
+                  if (selectedItem.type === "project") {
+                    setProject(String(selectedItem.id));
+                    setLocation(null);
+                    setLinkLocation(String(selectedItem.title));
+                  } else {
+                    setLocation(String(selectedItem.id));
+                    setProject(null);
+                    setLinkLocation(selectedItem.title);
+                  }
+                }}
+              />
+            </div>
 
-          <div>
-            <Sheet>
-              <SheetTrigger>
-                <Button className="ml-auto" variant={"outline"}>
-                  <i className="bi-filter"></i> All filters
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="z-[99999]">
-                <div className="relative w-full flex flex-col h-full space-y-5">
-                  <div className="flex flex-col items-start justify-between py-6 border-b shrink-0">
-                    <h2 className="text-lg lg:text-lg font-bold text-gray-900">
-                      More Filters
-                    </h2>
+            <PropertyCategoryDropdown
+              options={allcategories || []}
+              setFilterValue={setlistingCategoryId}
+              filterValue={listingCategoryId}
+              isLoading={isLoadingCategory}
+            />
 
-                    <p className="text-sm text-gray-500 mt-2">
-                      Refine your property search with advanced filters
-                    </p>
-                  </div>
+            <ExtraFilter
+              beds={tempBedroom}
+              baths={tempBathroom}
+              setBeds={setTempBedroom}
+              setBaths={setTempBathroom}
+            />
+            <PriceFilter
+              minPrice={tempMinPrice}
+              maxPrice={tempMaxPrice}
+              setMinPrice={setTempMinPrice}
+              setMaxPrice={setTempMaxPrice}
+            />
 
-                  <div className="flex flex-col justify-between items-center w-full h-full">
-                    <div className="grid grid-cols-1 w-[100%] gap-6">
-                      <div className="rounded-3xl border bg-white shadow-sm overflow-visible relative z-10 flex p-4 justify-between items-center">
-                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
-                          Price (AED)
-                        </h3>
+            <div className="ml-auto">
+              <Sheet>
+                <SheetTrigger>
+                  <Button className="ml-auto" variant={"outline"}>
+                    <i className="bi-filter"></i> All filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="z-[99999]">
+                  <div className="relative w-full flex flex-col h-full space-y-5">
+                    <div className="flex flex-col items-start justify-between shrink-0">
+                      <h2 className="text-lg lg:text-lg font-bold text-gray-900">
+                        Filters Properties
+                      </h2>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Refine your property search with advanced filters
+                      </p>
+                    </div>
 
-                        <PriceFilter
-                          minPrice={tempMinPrice}
-                          maxPrice={tempMaxPrice}
-                          setMinPrice={setTempMinPrice}
-                          setMaxPrice={setTempMaxPrice}
-                          className="w-[50%] p-2 flex justify-between items-center"
-                        />
-                      </div>
+                    <div className="flex flex-col justify-between items-center w-full h-full">
+                      <div className="grid grid-cols-1 w-[100%] gap-6">
+                        {/* <div className="rounded-3xl border bg-white shadow-sm overflow-visible relative z-10 flex p-4 justify-between items-center">
+                          <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                            Price (AED)
+                          </h3>
 
-                      <div className="rounded-3xl border bg-white p-4 shadow-sm overflow-visible relative z-10 flex justify-between items-center">
-                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
-                          Bed & Bath
-                        </h3>
+                          <PriceFilter
+                            minPrice={tempMinPrice}
+                            maxPrice={tempMaxPrice}
+                            setMinPrice={setTempMinPrice}
+                            setMaxPrice={setTempMaxPrice}
+                            className="w-[50%] p-2 flex justify-between items-center"
+                          />
+                        </div> */}
 
-                        <ExtraFilter
-                          beds={tempBedroom}
-                          baths={tempBathroom}
-                          setBeds={setTempBedroom}
-                          setBaths={setTempBathroom}
-                          className="w-[60%] p-2 flex justify-between items-center"
-                        />
-                      </div>
+                        {/* <div className="rounded-3xl border bg-white p-4 shadow-sm overflow-visible relative z-10 flex justify-between items-center">
+                          <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
+                            Bed & Bath
+                          </h3>
 
-                      <div className="rounded-3xl border bg-white p-4 shadow-sm overflow-visible relative z-30 flex justify-between items-center">
-                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
-                          Language
-                        </h3>
+                          <ExtraFilter
+                            beds={tempBedroom}
+                            baths={tempBathroom}
+                            setBeds={setTempBedroom}
+                            setBaths={setTempBathroom}
+                            className="w-[60%] p-2 flex justify-between items-center"
+                          />
+                        </div> */}
 
                         <DataTableFilterBox
                           title="Language"
                           options={availableLanguages || []}
                           filterValue={tempLanguage}
                           setFilterValue={setTempLanguage}
-                          className="w-[70%] p-2 flex justify-between items-center"
+                          className="w-full p-2 flex justify-between items-center"
                         />
                       </div>
-                    </div>
 
-                    <div className="flex flex-col sm:flex-row items-center gap-4 pt-5">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full sm:w-auto h-12 px-8 rounded-2xl text-base"
-                      >
-                        <DataTableResetFilter
-                          isFilterActive={isAnyFilterActive}
-                          onReset={resetFilters}
-                        />
-                      </Button>
+                      <div className="flex flex-col sm:flex-row items-center gap-4 pt-5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full sm:w-auto h-12 px-8 rounded-2xl text-base"
+                        >
+                          <DataTableResetFilter
+                            isFilterActive={isAnyFilterActive}
+                            onReset={resetFilters}
+                          />
+                        </Button>
 
-                      <Button
-                        type="button"
-                        className="w-full flex-1 h-12 rounded-2xl text-base font-semibold bg-brand hover:bg-brand text-white"
-                        onClick={async () => {
-                          const updates: Promise<any>[] = [];
+                        <Button
+                          type="button"
+                          className="w-full flex-1 h-12 text-base font-semibold bg-brand hover:bg-brand text-white"
+                          onClick={async () => {
+                            const updates: Promise<any>[] = [];
 
-                          if (tempMinPrice)
-                            updates.push(setMinPrice(tempMinPrice));
-                          if (tempMaxPrice)
-                            updates.push(setMaxPrice(tempMaxPrice));
-                          if (tempBedroom)
-                            updates.push(setBedroom(tempBedroom));
-                          if (tempBathroom)
-                            updates.push(setBathroom(tempBathroom));
-                          if (tempLanguage)
-                            updates.push(setLanguage(tempLanguage));
+                            if (tempMinPrice)
+                              updates.push(setMinPrice(tempMinPrice));
+                            if (tempMaxPrice)
+                              updates.push(setMaxPrice(tempMaxPrice));
+                            if (tempBedroom)
+                              updates.push(setBedroom(tempBedroom));
+                            if (tempBathroom)
+                              updates.push(setBathroom(tempBathroom));
+                            if (tempLanguage)
+                              updates.push(setLanguage(tempLanguage));
 
-                          await Promise.all(updates);
+                            await Promise.all(updates);
 
-                          setFilters(false);
-                        }}
-                      >
-                        See Properties
-                      </Button>
+                            setFilters(false);
+                          }}
+                        >
+                          See Properties
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
-
-          <DataTableResetFilter
-            isFilterActive={isAnyFilterActive}
-            onReset={resetFilters}
-          />
+          <div>
+            <DataTableResetFilter
+              isFilterActive={isAnyFilterActive}
+              onReset={resetFilters}
+            />
+          </div>
         </Container>
       </section>
 
@@ -378,7 +389,7 @@ const PageWrap = () => {
         </section>
       )}
 
-      <section className="min-h-[50vh] py-2">
+      <section className="min-h-[80vh] py-2 bg-gray-100">
         <Container>
           {/* <div className="text-muted-foreground">22,000 listed</div> */}
           <div className="grid grid-cols-1 md:grid-cols-[70%_30%] gap-4 py-4">
@@ -422,9 +433,9 @@ const PageWrap = () => {
                                   className={cn(
                                     `px-2 py-0.5 rounded-full`,
                                     listing.dealType.toLowerCase() === "sale" &&
-                                      "bg-purple-200 text-purple-800",
+                                    "bg-purple-200 text-purple-800",
                                     listing.dealType.toLowerCase() === "rent" &&
-                                      "bg-pink-200 text-pink-800",
+                                    "bg-pink-200 text-pink-800",
                                   )}
                                 >{`for ${listing.dealType.toLowerCase()}`}</span>
                               </div>
@@ -468,7 +479,7 @@ const PageWrap = () => {
                           <div className="p-4 flex flex-col justify-between gap-3">
                             <Link
                               href={`/search/${listing.id}`}
-                              // className="absolute top-0 left-0 w-full h-full bgr/10 inset-0"
+                            // className="absolute top-0 left-0 w-full h-full bgr/10 inset-0"
                             >
                               <div className="space-y-2">
                                 <div className="flex justify-between text-xs text-muted-foreground">
@@ -522,7 +533,7 @@ const PageWrap = () => {
                                   {(listing?.completionStatus && (
                                     <div className="flex gap-2 items-center border-l pl-2">
                                       {listing?.completionStatus?.toLowerCase() ===
-                                      "off_plan" ? (
+                                        "off_plan" ? (
                                         <i className="bi-building-exclamation opacity-50"></i>
                                       ) : listing?.completionStatus?.toLowerCase() ===
                                         "ready" ? (
@@ -612,9 +623,8 @@ const PageWrap = () => {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     const fullName =
-                                      `${listing.uploader.first_name || ""} ${
-                                        listing.uploader.last_name || ""
-                                      }`.trim();
+                                      `${listing.uploader.first_name || ""} ${listing.uploader.last_name || ""
+                                        }`.trim();
 
                                     const phone = String(
                                       listing.uploader.whatsapp || "",
@@ -668,11 +678,10 @@ const PageWrap = () => {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`h-11 w-11 rounded-md border transition font-medium ${
-                      currentPage === page
-                        ? "bg-purple-50 text-purple-700 border-purple-500"
-                        : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
-                    }`}
+                    className={`h-11 w-11 rounded-md border transition font-medium ${currentPage === page
+                      ? "bg-purple-50 text-purple-700 border-purple-500"
+                      : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
+                      }`}
                   >
                     {page}
                   </button>

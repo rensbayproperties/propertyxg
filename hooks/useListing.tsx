@@ -14,7 +14,11 @@ import { propertyContactSchema } from "@/lib/schemas";
 
 type FormData = z.infer<typeof propertyContactSchema>;
 
-const useListing = (opt: string = "") => {
+type ListingDefaults = {
+  dealType?: string
+}
+
+const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
   const [open, setOpen] = useState(false);
   const [openShare, setOpenShare] = useState(false);
   const [openNotify, setOpenNotify] = useState(false);
@@ -106,7 +110,7 @@ const useListing = (opt: string = "") => {
 
   const [listType, setListType] = useQueryState(
     "dealType",
-    searchParams.status.withOptions({ shallow: false }).withDefault(""),
+    searchParams.status.withOptions({ shallow: false }).withDefault(defaults?.dealType || ""),
   );
 
   const [language, setLanguage] = useQueryState(

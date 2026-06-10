@@ -47,9 +47,9 @@ const routeList: RouteProps[] = [
 ];
 
 const Navbar = ({ className }: { className?: string }) => {
-  const {setListType} = useListing()
-  
-  const pathname = usePathname(); 
+  const { setListType } = useListing()
+
+  const pathname = usePathname();
 
   const isActive = (href: string) => {
     // Handle home route
@@ -69,47 +69,18 @@ const Navbar = ({ className }: { className?: string }) => {
   };
 
   const renderNavLink = (route: RouteProps, i: number) => {
-  if (route.label === "Buy") {
     return (
-      <button
+      <Link
+        rel="noreferrer noopener"
+        href={route.href}
         key={i}
-        onClick={() => setListType("SALE")}
-        className={`font-medium ${
-          isActive(route.href) ? "text-brand" : "opacity-80"
-        }`}
+        className={`font-medium ${isActive(route.href) ? "text-brand" : "opacity-80"
+          }`}
       >
         {route.label}
-      </button>
+      </Link>
     );
-  }
-
-  if (route.label === "Rent") {
-    return (
-      <button
-        key={i}
-        onClick={() => setListType("RENT")}
-        className={`font-medium ${
-          isActive(route.href) ? "text-brand" : "opacity-80"
-        }`}
-      >
-        {route.label}
-      </button>
-    );
-  }
-
-  return (
-    <Link
-      rel="noreferrer noopener"
-      href={route.href}
-      key={i}
-      className={`font-medium ${
-        isActive(route.href) ? "text-brand" : "opacity-80"
-      }`}
-    >
-      {route.label}
-    </Link>
-  );
-};
+  };
 
   return (
     <header className={`top-0 w-full z-[999] bg-white/90 ${className || ""}`}>

@@ -176,7 +176,7 @@ const LocationProjectSearchDropdown: React.FC<
             const subtitle =
               normalizeText(
                 item.subtitle ||
-                  "",
+                "",
               );
 
             let score = 0;
@@ -276,7 +276,7 @@ const LocationProjectSearchDropdown: React.FC<
                     score +=
                       180 -
                       wordDistance *
-                        30;
+                      30;
                   }
                 },
               );
@@ -461,7 +461,7 @@ const LocationProjectSearchDropdown: React.FC<
                     onMouseDown={() => {
                       setSearchTerm(
                         item?.title ||
-                          "",
+                        "",
                       );
 
                       setIsOpen(
@@ -475,7 +475,7 @@ const LocationProjectSearchDropdown: React.FC<
                   >
                     <div className="mt-0.5">
                       {item.type ===
-                      "project" ? (
+                        "project" ? (
                         <i className="bi bi-building opacity-60 text-base"></i>
                       ) : (
                         <i className="bi bi-geo-alt opacity-60 text-base"></i>
@@ -491,11 +491,10 @@ const LocationProjectSearchDropdown: React.FC<
 
                       <span className="text-xs text-gray-500 truncate">
                         {item.type ===
-                        "project"
-                          ? `Project • ${
-                              item.subtitle ||
-                              "Area"
-                            }`
+                          "project"
+                          ? `Project • ${item.subtitle ||
+                          "Area"
+                          }`
                           : "Location"}
                       </span>
                     </div>

@@ -2,9 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
   },
   images: {
     remotePatterns: [
@@ -46,19 +49,19 @@ const nextConfig = {
     return [
       {
         source: "/buy",
-        destination: "/listings?ad_type=buy",
+        destination: "/search?dealType=SALE",
       },
       {
         source: "/rent",
-        destination: "/listings?ad_type=rent",
+        destination: "/search?dealType=RENT",
       },
       {
         source: "/off-plan",
-        destination: "/listings?ad_type=off_plan",
+        destination: "/search?dealType=OFF_PLAN",
       },
       {
-        source: "/commercial-projects",
-        destination: "/listings?top_category=commercial",
+        source: "/commercial",
+        destination: "/search?top_category=commercial",
       },
     ];
   },
