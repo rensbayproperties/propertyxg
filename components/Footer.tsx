@@ -23,7 +23,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="h-[100vh] flex bg-[#565557]">
+    <footer className="h-[50vh] flex bg-gray-50 z-0">
     </footer>
   );
 };

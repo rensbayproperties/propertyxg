@@ -115,13 +115,16 @@
   .text-custom-purple {
     @apply text-purple-700;
   }
-  .page-heading, .page-heading-lg {
+  .page-heading, .page-heading-lg, .page-heading-sm {
     @apply text-xl;
     @apply md:text-3xl;
-    @apply font-extrabold;
+    /* @apply font-extrabold; */
   }
   .page-heading-lg {
     @apply md:text-4xl;
+  }
+  .page-heading-sm {
+    @apply md:text-2xl;
   }
   .page-heading-secondary {
     @apply text-xl;

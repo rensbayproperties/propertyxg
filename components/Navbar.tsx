@@ -33,16 +33,19 @@ const routeList: RouteProps[] = [
     label: "Rent",
   },
   {
-    href: "/commercial",
-    label: "Commercial",
-  },
-  {
     href: "/find-agents",
     label: "Find Agents",
   },
   {
     href: "/new-projects",
     label: "New Projects",
+  },
+];
+
+const routeList2: RouteProps[] = [
+  {
+    href: "/for-agents",
+    label: "For Agents",
   },
 ];
 
@@ -86,54 +89,62 @@ const Navbar = ({ className }: { className?: string }) => {
     <header className={`top-0 w-full z-[999] bg-white/90 ${className || ""}`}>
       <NavigationMenu className="mx-auto">
         <NavigationMenuList className="h-14 md:h-16 w-screen">
-          <Container className="flex justify-between items-center">
-            <NavigationMenuItem className="flex">
-              <Link
-                rel="noreferrer noopener"
-                href="/"
-                className="text-purple-700"
-              >
-                <PropXgLogo />
-              </Link>
-            </NavigationMenuItem>
-
-            {/* desktop */}
-            <nav className="hidden lg:flex gap-10">
-              {routeList.map((route, i) => renderNavLink(route, i))}
-            </nav>
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex gap-4 items-center">
-                <div>
-                  <Link
-                    href={`/signin`}
-                    className={cn(buttonVariants({ variant: "outline_brand", size: "sm" }), " shadow-sm")}
-                  >
-                    Log in
-                  </Link>
-                </div>
+          <Container>
+            <div className="grid grid-cols-3 md:items-center">
+              <div>
+                {/* desktop */}
+                <nav className="hidden lg:flex gap-4 md:gap-6">
+                  {routeList.map((route, i) => renderNavLink(route, i))}
+                </nav>
               </div>
-              {/* mobile */}
-              <div className="lg:hidden">
-                <Sheet>
-                  <SheetTrigger>
-                    <Menu size={24} />
-                  </SheetTrigger>
-                  <SheetContent className="z-[99999]">
-                    <nav className="flex flex-col gap-4">
-                      {routeList.map((route, i) => renderNavLink(route, i))}
-                    </nav>
+              <div className="flex justify-center">
+                <NavigationMenuItem>
+                  <Link
+                    rel="noreferrer noopener"
+                    href="/"
+                    className="text-purple-700"
+                  >
+                    <PropXgLogo />
+                  </Link>
+                </NavigationMenuItem>
+              </div>
+              <div className="flex items-center justify-end gap-8">
+                <nav className="hidden lg:flex gap-4 md:gap-6">
+                  {routeList2.map((route, i) => renderNavLink(route, i))}
+                </nav>
+                <div className="hidden md:flex gap-4 items-center">
+                  <div>
                     <Link
-                      rel="noreferrer noopener"
-                      href=""
-                      target="_blank"
-                      className={`border w-full mt-5 ${buttonVariants({
-                        variant: "outline",
-                      })}`}
+                      href={`/signin`}
+                      className={cn(buttonVariants({ variant: "brand", size: "sm" }), " shadow-sm")}
                     >
-                      Log In
+                      Log in
                     </Link>
-                  </SheetContent>
-                </Sheet>
+                  </div>
+                </div>
+                {/* mobile */}
+                <div className="lg:hidden">
+                  <Sheet>
+                    <SheetTrigger>
+                      <Menu size={24} />
+                    </SheetTrigger>
+                    <SheetContent className="z-[99999]">
+                      <nav className="flex flex-col gap-4">
+                        {routeList.map((route, i) => renderNavLink(route, i))}
+                      </nav>
+                      <Link
+                        rel="noreferrer noopener"
+                        href=""
+                        target="_blank"
+                        className={`border w-full mt-5 ${buttonVariants({
+                          variant: "outline",
+                        })}`}
+                      >
+                        Log In
+                      </Link>
+                    </SheetContent>
+                  </Sheet>
+                </div>
               </div>
             </div>
           </Container>

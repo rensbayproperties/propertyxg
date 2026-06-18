@@ -8,8 +8,8 @@ const HomeLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <Navbar className="border-b" />
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
       <main className="flex-grow">{children}</main>
       <Footer />
     </div>

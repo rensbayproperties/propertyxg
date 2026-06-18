@@ -30,7 +30,7 @@ const ExtraFilter = ({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={clsx('text-base font-normal', className)}>
+        <Button variant="outline" className={clsx('text-base font-normal justify-between', className)}>
           <span className="text-muted-foreground">Beds & Baths</span>
           <ChevronDown className="h-4 w-4" />
         </Button>

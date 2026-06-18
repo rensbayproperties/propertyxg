@@ -17,6 +17,8 @@ import PriceFilter from "@/components/search/PriceFilter";
 import useListing from "@/hooks/useListing";
 import { DataTableFilterBox } from "@/components/ui/table/data-table-filter-box";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 type Feature = {
   icon?: keyof typeof Icons;
@@ -71,84 +73,77 @@ const PageWrap = () => {
   const [tempLanguage, setTempLanguage] = useState(language);
   const [filters, setFilters] = useState(false);
 
+  const features = [
+    {
+      title: "Find anything with AI",
+      description: "Hide basement flats, discover renovation projects and surface homes that",
+      url: "",
+      cta: "Get started",
+      image: "/assets/images/hero/feat-1.png",
+    },
+    {
+      title: "Do more with Xg WhatsApp AI",
+      description: "Discover more on the Go. Explore homes across different neighbourhoods",
+      url: "",
+      cta: "Get started",
+      image: "/assets/images/hero/feat-2.png",
+    },
+    {
+      title: "Xg Agents",
+      description: "Find trusted agents awarded for their excellent performance",
+      url: "",
+      cta: "Get started",
+      image: "/assets/images/hero/feat-3.png",
+    },
+  ]
+
   return (
     <div>
       <div className="relative flex items-center justify-center w-full">
         <div className="w-full">
-          <div className="flex flex-col gap-4 md:gap-6 min-h-[65vh] w-full items-center justify-center py-10 md:py-16 to-brand from-brand/80 bg-gradient-to-b relative">
+          <div className="flex flex-col gap-4 md:gap-6 min-h-[40vh] w-full items-center justify-center py-10 md:py-24 relative bg-black">
             <div
-              className="absolute left-0 top-0 h-full w-full bg-cover bg-center z-0 opacity-50"
-              style={{
-                backgroundImage: "url('/assets/images/hero-2.jpg')",
-              }}
+              className="absolute left-0 top-0 h-full w-full bg-cover bg-center z-0 bg-[linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.2)),url('/assets/images/hero/2.webp')]"
             ></div>
-            <div className="flex flex-col leading-[1.2] justify-center items-center w-full gap-2 z-10 px-4">
-              <div className="text-4xl md:text-5xl font-extrabold text-white">Your home search starts here</div>
-              <div className="text-2xl text-white">Find properties to rent, buy or invest.<span className="text-brand">.</span></div>
+            <div className="flex flex-col leading-[1.2] justify-center items-center w-full gap-2 z-10 px-4 text-center">
+              <div className="text-4xl md:text-5xl font-extrabold text-white max-sm:max-w-xs">The Smarter Way to Find Home</div>
+              {/* <div className="text-4xl md:text-5xl font-extrabold text-white">Your home search starts here</div> */}
+              <div className="text-xl text-white">Find properties to rent, buy or invest.<span className="text-brand">.</span></div>
             </div>
             <Tabs defaultValue="crm" className="w-full z-10">
               <TabsList className="w-full">
                 <Container size="sm" className="w-full flex items-center relative">
-                  <div className="inline-flex items-center bg-white gap-y-2 flex-wrap justify-center rounded-2xl mx-auto p-1">
+                  <div className="inline-flex items-center bg-white gap-y-2 flex-wrap justify-center rounded-2xl mx-auto p-1 text-sm">
                     <TabsTrigger value="crm"><div className="flex gap-2 items-center">Buy</div></TabsTrigger>
                     <TabsTrigger value="marketplace"><div className="flex gap-2 items-center">Rent</div></TabsTrigger>
-                    <TabsTrigger value="website"><div className="flex gap-2 items-center">New Projects</div></TabsTrigger>
                     <TabsTrigger value="data"><div className="flex gap-2 items-center">Transactions</div></TabsTrigger>
                     <TabsTrigger value="growth"><div className="flex gap-2 items-center">Agents</div></TabsTrigger>
                   </div>
                 </Container>
               </TabsList>
               <Container size="sm" className="h-[12rem]">
-                <TabsContent value="crm" className="z-10 bg-white rounded-xl p-6 shadow">
-                  <div className="flex flex-wrap items-center gap-2 w-full">
-                    <div className="w-full flex gap-2">
+                <TabsContent value="crm" className="z-10">
+                  <div className="flex flex-wrap items-center w-full bg-[#E7D7F6]ss bg-brand rounded-3xl p-2 gap-2">
+                    <div className="w-full flex gap-2 relative bg-white rounded-3xl">
                       <div className="w-full">
-                        <LocationProjectSearchDropdown
-                          onLocationSelect={(selectedItem) => {
-                            if (selectedItem.type === "project") {
-                              setProject(String(selectedItem.id));
-                              setLocation(null);
-                              setLinkLocation(String(selectedItem.title));
-                            } else {
-                              setLocation(String(selectedItem.id));
-                              setProject(null);
-                              setLinkLocation(selectedItem.title);
-                            }
-                          }}
+                        <Textarea
+                          placeholder="Find anything..."
+                          // disabled={isLoading}
+                          // {...field}
+                          className="h-32 rounded-2xl p-3 text-lg"
                         />
                       </div>
-                      <Button variant={"brand"} className="shadow rounded">Search</Button>
+                      <span className="p-0 absolute bottom-2 left-2 px-2 py-1 text-sm bg-brand/10 border border-brand/30 font-medium rounded-lg flex items-center gap-1.5"><i className="bi-house-door-fill"></i> Properties for sale</span>
+                      <button className="p-0 absolute bottom-2 right-2"><i className="bi-arrow-right-circle-fill rounded-full text-3xl md:text-4xl text-brand"></i></button>
                     </div>
-
-                    <PropertyCategoryDropdown
-                      options={allcategories || []}
-                      setFilterValue={setlistingCategoryId}
-                      filterValue={listingCategoryId}
-                      isLoading={isLoadingCategory}
-                    />
-
-                    <ExtraFilter
-                      beds={tempBedroom}
-                      baths={tempBathroom}
-                      setBeds={setTempBedroom}
-                      setBaths={setTempBathroom}
-                    />
-                    <PriceFilter
-                      minPrice={tempMinPrice}
-                      maxPrice={tempMaxPrice}
-                      setMinPrice={setTempMinPrice}
-                      setMaxPrice={setTempMaxPrice}
-                    />
-                    <PriceFilter
-                      minPrice={tempMinPrice}
-                      maxPrice={tempMaxPrice}
-                      setMinPrice={setTempMinPrice}
-                      setMaxPrice={setTempMaxPrice}
-                    />
-                    <div className="ml-auto">
+                    <div className="flex justify-between gap-2 w-full px-2">
+                      <div className="flex items-center gap-2 font-semibold">
+                        <i className="bi-stars text-yellow-400"></i>
+                        <span className="text-white">AI Powered search</span>
+                      </div>
                       <Sheet>
                         <SheetTrigger>
-                          <Button className="ml-auto font-normal" variant={"outline"}>
+                          <Button className="ml-auto font-normal rounded-xl px-3" variant={"outline"} size={"sm"}>
                             <i className="bi-filter"></i> Filters
                           </Button>
                         </SheetTrigger>
@@ -164,7 +159,45 @@ const PageWrap = () => {
                             </div>
 
                             <div className="flex flex-col justify-between items-center w-full h-full">
-                              <div className="grid grid-cols-1 w-[100%] gap-6">
+                              <div className="grid grid-cols-1 w-[100%] gap-2">
+                                <LocationProjectSearchDropdown
+                                  onLocationSelect={(selectedItem) => {
+                                    if (selectedItem.type === "project") {
+                                      setProject(String(selectedItem.id));
+                                      setLocation(null);
+                                      setLinkLocation(String(selectedItem.title));
+                                    } else {
+                                      setLocation(String(selectedItem.id));
+                                      setProject(null);
+                                      setLinkLocation(selectedItem.title);
+                                    }
+                                  }}
+                                />
+
+                                <PropertyCategoryDropdown
+                                  options={allcategories || []}
+                                  setFilterValue={setlistingCategoryId}
+                                  filterValue={listingCategoryId}
+                                  isLoading={isLoadingCategory}
+                                />
+                                <ExtraFilter
+                                  beds={tempBedroom}
+                                  baths={tempBathroom}
+                                  setBeds={setTempBedroom}
+                                  setBaths={setTempBathroom}
+                                />
+                                <PriceFilter
+                                  minPrice={tempMinPrice}
+                                  maxPrice={tempMaxPrice}
+                                  setMinPrice={setTempMinPrice}
+                                  setMaxPrice={setTempMaxPrice}
+                                />
+                                <PriceFilter
+                                  minPrice={tempMinPrice}
+                                  maxPrice={tempMaxPrice}
+                                  setMinPrice={setTempMinPrice}
+                                  setMaxPrice={setTempMaxPrice}
+                                />
                                 <DataTableFilterBox
                                   title="Language"
                                   options={availableLanguages || []}
@@ -219,10 +252,22 @@ const PageWrap = () => {
           </div>
         </div>
       </div>
-      <div className="h-screen"></div>
-      <Container>
-        <div></div>
-      </Container>
+      <Section>
+        <Container className="space-y-4 md:space-y-8">
+          <div className="page-heading-sm text-center !font-medium">Explore, save, and share homes with AI-powered search</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {
+              features.map((feature: any, i: number) => {
+                return <div key={`__${i}`} className="bg-gradient-to-bs bg-stone-100 from-brand/10s to-gray-50s border rounded-2xl flex flex-col gap-2 p-4 md:p-4 items-center text-center">
+                  <div><Image src={feature.image} alt={""} width={300} height={200} /></div>
+                  <div className="font-semibold text-lg max-w-xs">{feature.title}</div>
+                  <div className="text-sm max-w-xs pb-2">{feature.description}</div>
+                </div>
+              })
+            }
+          </div>
+        </Container>
+      </Section>
       <div className="h-screen"></div>
       <div className="bg-gradient-to-b from-white to-brand/20 py-20 md:py-26">
         <Container>
