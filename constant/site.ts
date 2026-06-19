@@ -1,6 +1,8 @@
 const siteData = {
     name: "PropertyXg",
     marketplace: "PropertyXg",
+    portal: "PotalXg",
+    portalUrl: "http://lvh.me:3000",
     whatsappNumber: "0973373666",
     whatsappNumberFormated: "0973373666",
     telephone: "0973373666",

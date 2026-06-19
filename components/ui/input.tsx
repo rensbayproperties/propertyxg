@@ -1,11 +1,29 @@
 "use client";
 
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { LucideIcon, Eye, EyeOff } from "lucide-react";
 
+const inputVariants = cva(
+  "flex w-full rounded-md border border-zinc-400 placeholder:text-placeholder bg-white text-foreground focus:border-transparent px-3 py-2 ring-offset-brand file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50",
+  {
+    variants: {
+      size: {
+        default: "h-10",
+        sm: "h-8 text-sm",
+        lg: "h-12",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  }
+);
+
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">,
+  VariantProps<typeof inputVariants> {
   icon?: any;
   // icon?: LucideIcon;
   iconPosition?: "left" | "right";
@@ -20,6 +38,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
       className,
+      size,
       type,
       icon: Icon,
       iconPosition = "left",
@@ -59,7 +78,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           type={inputType}
           className={cn(
-            "flex h-10 w-full rounded-md border placeholder:text-placeholder bg-white text-foreground focus:border-transparent px-3 py-2 ring-offset-brand file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50",
+            inputVariants({ size }),
             Icon && iconPosition === "left" && "pl-8",
             Icon && iconPosition === "right" && "pr-8",
             prefix && prefixPosition === "left" && "pl-14",
@@ -95,4 +114,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
-export { Input };
+export { Input, inputVariants };

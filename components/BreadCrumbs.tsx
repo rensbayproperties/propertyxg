@@ -16,7 +16,13 @@ const BreadCrumbs = () => {
   if (items.length === 0) return null;
   return (
     <Breadcrumb>
-      <BreadcrumbList>
+      <BreadcrumbList className="text-sm">
+        <BreadcrumbItem>
+          <Link href="/"><i className="bi-house-door-fill"></i></Link>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator>
+          <i className="bi-chevron-right"></i>
+        </BreadcrumbSeparator>
         {items.map((item, index) => (
           <Fragment key={item.title}>
             {index !== items.length - 1 && (
@@ -26,7 +32,7 @@ const BreadCrumbs = () => {
             )}
             {index < items.length - 1 && (
               <BreadcrumbSeparator>
-                {/* <Slash /> */}
+                <Slash />
               </BreadcrumbSeparator>
             )}
             {index === items.length - 1 && (

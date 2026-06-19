@@ -44,7 +44,11 @@ const routeList: RouteProps[] = [
 
 const routeList2: RouteProps[] = [
   {
-    href: "/for-agents",
+    href: "/dxb-transactions",
+    label: "Dubai Transactions",
+  },
+  {
+    href: "/",
     label: "For Agents",
   },
 ];
@@ -86,9 +90,9 @@ const Navbar = ({ className }: { className?: string }) => {
   };
 
   return (
-    <header className={`top-0 w-full z-[999] bg-white/90 ${className || ""}`}>
+    <header className={`top-0 w-full bg-white/90 backdrop-blur ${className || ""}`}>
       <NavigationMenu className="mx-auto">
-        <NavigationMenuList className="h-14 md:h-16 w-screen">
+        <NavigationMenuList className="h-14 md:h-16 md:py-4 w-screen">
           <Container>
             <div className="grid grid-cols-3 md:items-center">
               <div>
@@ -116,9 +120,9 @@ const Navbar = ({ className }: { className?: string }) => {
                   <div>
                     <Link
                       href={`/signin`}
-                      className={cn(buttonVariants({ variant: "brand", size: "sm" }), " shadow-sm")}
+                      className={cn(buttonVariants({ variant: "brand" }), " shadow-sm")}
                     >
-                      Log in
+                      Sign in
                     </Link>
                   </div>
                 </div>
