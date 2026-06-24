@@ -1,7 +1,5 @@
 "use client";
 import React from "react";
-import Logo from "@/public/logo.png";
-import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import {
   Form,

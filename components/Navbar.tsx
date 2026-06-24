@@ -43,19 +43,18 @@ const routeList: RouteProps[] = [
 ];
 
 const routeList2: RouteProps[] = [
+  // {
+  //   href: "/dxb-transactions",
+  //   label: "Dubai Transactions",
+  // },
   {
-    href: "/dxb-transactions",
-    label: "Dubai Transactions",
-  },
-  {
-    href: "/",
+    href: siteData.portalUrl || "/",
     label: "For Agents",
   },
 ];
 
 const Navbar = ({ className }: { className?: string }) => {
-  const { setListType } = useListing()
-
+  // const { setListType } = useListing()
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -120,7 +119,7 @@ const Navbar = ({ className }: { className?: string }) => {
                   <div>
                     <Link
                       href={`/signin`}
-                      className={cn(buttonVariants({ variant: "brand" }), " shadow-sm")}
+                      className={cn(buttonVariants({ variant: "brand", size: "sm" }), " shadow-sm")}
                     >
                       Sign in
                     </Link>

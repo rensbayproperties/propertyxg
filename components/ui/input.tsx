@@ -69,11 +69,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {Icon && iconPosition === "left" && (
           <Icon
             size={iconSize}
-            className="absolute left-3 text-brand"
+            className="absolute left-2 text-brand"
           />
         )}
         {prefix && prefixPosition === "left" && (
-          <div className={cn("absolute left-3", prefixClassName)}>{prefix}</div>
+          <div className={cn("absolute left-2", prefixClassName)}>{prefix}</div>
         )}
         <input
           type={inputType}

@@ -407,10 +407,11 @@ const LocationProjectSearchDropdown: React.FC<
   return (
     <div
       ref={containerRef}
-      className="relative"
+      className="relative w-full"
     >
       <Input
-        placeholder="Search location or project"
+        className="w-full !border-transparent ring-offset-transparent focus-visible:ring-1 focus-visible:ring-transparent"
+        placeholder="All of Dubai"
         value={searchTerm}
         onChange={
           handleLocationSearch

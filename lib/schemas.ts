@@ -835,3 +835,7 @@ export const propertyContactReviewSchema = z.object({
   closed: z.string(),
   message: z.string().optional(),
 });
+
+export const aiSearchSchema = z.object({
+  query: z.string(),
+});

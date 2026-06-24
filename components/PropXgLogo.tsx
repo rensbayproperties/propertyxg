@@ -16,7 +16,7 @@ export default function PropXgLogo({ variant = "default" }: LogoVariant) {
   return (
     <div className="flex items-center text-xl md:text-xl gap-1.5">
       <i className="bi-search-heart"></i>
-      <div className="flex font-extrabold text-black">{siteData.marketplace}</div>
+      <div className="flex font-extrabold">{siteData.marketplace}</div>
     </div>
   );
 }

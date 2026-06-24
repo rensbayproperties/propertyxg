@@ -147,8 +147,11 @@
   .page-form {
     @apply py-6 space-y-2;
   }
-  .pkjkjk {
-    color: #684f48;
+  .bgg {
+    @apply bg-green-600;
+  }
+  .bgr {
+    @apply bg-red-600;
   }
 
   .form-helper {
