@@ -40,6 +40,7 @@ const config: Config = {
         brand: "rgb(var(--color-brand) / <alpha-value>)",
         secondary: "rgb(var(--color-secondary) / <alpha-value>)",
         customyellow: "rgb(var(--color-customyellow) / <alpha-value>)",
+        "input-border": "rgb(var(--input-border) / <alpha-value>)",
         card: {
           DEFAULT: "rgb(var(--card) / <alpha-value>)",
           foreground: "rgb(var(--card-foreground) / <alpha-value>)",

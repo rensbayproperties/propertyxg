@@ -6,12 +6,13 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { Input } from "./ui/input";
+import { Input, InputProps } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
 import { useLocationsProjects } from "@/hooks/useLocationsProjects";
 import { Location, Project } from "@/types";
 import { useQueryState } from "nuqs";
 import { Icons } from "@/components/icons";
+import clsx from "clsx";
 
 const SKELETON_ROW_WIDTHS = [
   "70%",
@@ -82,18 +83,29 @@ const levenshtein = (
   return matrix[b.length][a.length];
 };
 
-interface LocationProjectSearchDropdownProps {
+type LocationProjectSearchDropdownProps = Omit<InputProps, "defaultValue"> & {
   onLocationSelect: (
     location: LocationWithProject,
   ) => void;
+  onClear?: () => void;
   defaultValue?: LocationWithProject;
-}
+  inputClassName?: string;
+};
+
+// interface LocationProjectSearchDropdownProps {
+//   onLocationSelect: (
+//     location: LocationWithProject,
+//   ) => void;
+//   defaultValue?: LocationWithProject;
+//   inputClassName?: string;
+// }
 
 const LocationProjectSearchDropdown: React.FC<
   LocationProjectSearchDropdownProps
-> = ({ onLocationSelect, defaultValue }) => {
+> = ({ onLocationSelect, onClear, defaultValue, inputClassName }) => {
+  const [name, setName] = useState("");
   const { allLocations, isLoading } =
-    useLocationsProjects();
+    useLocationsProjects(name);
 
   const [searchTerm, setSearchTerm] =
     useState("");
@@ -106,8 +118,7 @@ const LocationProjectSearchDropdown: React.FC<
     setShowLoadingSkeleton,
   ] = useState(false);
 
-  const [, setName] =
-    useQueryState("name");
+  // const [, setName] = useQueryState("name");
 
   const containerRef =
     useRef<HTMLDivElement>(null);
@@ -385,7 +396,8 @@ const LocationProjectSearchDropdown: React.FC<
      * IF EMPTY
      */
     if (!value.trim()) {
-      setName(null);
+      setName("");
+      onClear?.();
     } else {
       setName(value);
     }
@@ -410,7 +422,7 @@ const LocationProjectSearchDropdown: React.FC<
       className="relative w-full"
     >
       <Input
-        className="w-full !border-transparent ring-offset-transparent focus-visible:ring-1 focus-visible:ring-transparent"
+        className={clsx(`w-full`, inputClassName)}
         placeholder="All of Dubai"
         value={searchTerm}
         onChange={

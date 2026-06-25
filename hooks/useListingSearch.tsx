@@ -61,10 +61,11 @@ const useListingSearch = () => {
     "category",
     searchParams.status.withOptions({ shallow: false }).withDefault(""),
   );
-  const [location, setLocation] = useQueryState(
-    "locationId",
-    searchParams.status.withOptions({ shallow: false }).withDefault(""),
-  );
+  // const [location, setLocation] = useQueryState(
+  //   "locationId",
+  //   searchParams.status.withOptions({ shallow: false }).withDefault(""),
+  // );
+  const [location, setLocation] = useState("");
   const [projectId, setProject] = useQueryState(
     "projectId",
     searchParams.status.withOptions({ shallow: false }).withDefault(""),
@@ -84,7 +85,7 @@ const useListingSearch = () => {
   const resetFilters = useCallback(() => {
     setSearchQuery(null);
     setlistingCategoryId(null);
-    setLocation(null);
+    setLocation("");
     setMinPrice(null);
     setMaxPrice(null);
     setBedroom(null);
@@ -127,13 +128,15 @@ const useListingSearch = () => {
     resolver: zodResolver(aiSearchSchema),
     defaultValues: {
       query: "",
+      location: "",
+      project: "",
     },
   });
 
   const { mutateAsync: submit, isPending } =
     useMutation({
-      mutationFn: (credentials: any) =>
-        axiosAuth.post("/ai/crm-parse", credentials),
+      mutationFn: (credentials: FormData) =>
+        axiosAuth.post("/ai/crm-parsess", credentials),
       onSuccess: (res, req) => {
         if (res?.data?.success && res?.data?.data) {
           const data = res?.data?.data
@@ -147,7 +150,7 @@ const useListingSearch = () => {
       },
     });
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: FormData) => {
     try {
       await submit(values);
     } catch (err) {

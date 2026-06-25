@@ -5,19 +5,21 @@ import { searchParams } from "@/lib/searchParams";
 import { Location, Project } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
+import { useState } from "react";
 
 type LocationWithProject = {
   locations: Location[];
   projects: Project[];
 }
 
-export const useLocationsProjects = () => {
-  const [name] = useQueryState(
-    "name",
-    searchParams.q
-      .withOptions({ shallow: false, throttleMs: 500 })
-      .withDefault("")
-  );
+export const useLocationsProjects = (name: string) => {
+  // const [name] = useQueryState(
+  //   "name",
+  //   searchParams.q
+  //     .withOptions({ shallow: false, throttleMs: 500 })
+  //     .withDefault("")
+  // );
+  // const [name] = useState("");
 
   const {
     data: allLocations = { locations: [], projects: [] },

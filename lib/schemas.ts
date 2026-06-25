@@ -838,4 +838,6 @@ export const propertyContactReviewSchema = z.object({
 
 export const aiSearchSchema = z.object({
   query: z.string(),
+  location: z.string().optional(),
+  project: z.string().optional(),
 });

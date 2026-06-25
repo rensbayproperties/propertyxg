@@ -7,9 +7,9 @@ import Container from "@/components/Container";
 import { Icons } from "@/components/icons"
 import Section from "@/components/Section";
 import LocationProjectSearchDropdown from "@/components/LocationProjectSearchDropdown";
-import PropertyCategoryDropdown from "@/components/PropertyCategoryFilter";
-import ExtraFilter from "@/components/search/ExtraFilter";
-import PriceFilter from "@/components/search/PriceFilter";
+import PropertyCategoryList from "@/components/PropertyCategoryList";
+import ExtraFilterList from "@/components/search/ExtraFilterList";
+import PriceFilterList from "@/components/search/PriceFilterList";
 import useListingSearch from "@/hooks/useListingSearch";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AnimatedPlaceholderTextarea } from "@/components/AnimatedPlaceholderTextarea";
@@ -57,6 +57,41 @@ const PageWrap = () => {
   const [LinkLocation, setLinkLocation] = useState("");
   const [filters, setFilters] = useState(false);
 
+  const handleLocationSelect = (selectedItem: {
+    type: "location" | "project";
+    id: string;
+    title: string;
+  }) => {
+    if (selectedItem.type === "project") {
+      form.setValue("project", String(selectedItem.id));
+      form.setValue("location", "");
+      setProject(String(selectedItem.id));
+      setLocation("");
+    } else {
+      form.setValue("location", String(selectedItem.id));
+      form.setValue("project", "");
+      setLocation(String(selectedItem.id));
+      setProject(null);
+    }
+    setLinkLocation(selectedItem.title);
+  };
+
+  const handleLocationClear = () => {
+    form.setValue("location", "");
+    form.setValue("project", "");
+    setLocation("");
+    setProject(null);
+    setLinkLocation("");
+  };
+
+  const selectedLocationDefault = LinkLocation
+    ? {
+      id: projectId || location,
+      title: LinkLocation,
+      type: projectId ? ("project" as const) : ("location" as const),
+    }
+    : undefined;
+
   const features = [
     {
       title: "Find anything with AI",
@@ -81,25 +116,26 @@ const PageWrap = () => {
     },
   ]
 
-  if (isPending)
-    return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/50 backdrop-blur-sm">
-        <div className="flex flex-col items-center gap-4">
-          {/* Spinner */}
-          <div className="relative flex items-center justify-center">
-            <div className="h-8 w-8 rounded-full border-4 border-purple-200"></div>
+  // if (isPending) {
+  //   return (
+  //     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/50 backdrop-blur-sm">
+  //       <div className="flex flex-col items-center gap-4">
+  //         {/* Spinner */}
+  //         <div className="relative flex items-center justify-center">
+  //           <div className="h-8 w-8 rounded-full border-4 border-purple-200"></div>
 
-            <div className="absolute h-8 w-8 rounded-full border-4 border-t-purple-600 border-r-purple-500 border-b-transparent border-l-transparent animate-spin"></div>
-          </div>
+  //           <div className="absolute h-8 w-8 rounded-full border-4 border-t-purple-600 border-r-purple-500 border-b-transparent border-l-transparent animate-spin"></div>
+  //         </div>
 
-          <div className="text-center">
-            <h1 className="text-lg font-bold text-purple-700 tracking-wide animate-pulse">
-              Xg AI is Thinking...
-            </h1>
-          </div>
-        </div>
-      </div>
-    );
+  //         <div className="text-center">
+  //           <h1 className="text-lg font-bold text-purple-700 tracking-wide animate-pulse">
+  //             Xg AI is Thinking...
+  //           </h1>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div>
@@ -111,7 +147,6 @@ const PageWrap = () => {
             ></div>
             <div className="flex flex-col leading-[1.2] justify-center items-center w-full gap-2 z-10 px-4 text-center">
               <div className="text-4xl md:text-5xl font-extrabold text-white max-sm:max-w-xs">The Smarter Way to Find Home</div>
-              {/* <div className="text-4xl md:text-5xl font-extrabold text-white">Your home search starts here</div> */}
               <div className="text-xl text-white">Find properties to rent, buy or invest.<span className="text-brand">.</span></div>
             </div>
             <div className="z-10 w-full">
@@ -187,19 +222,22 @@ const PageWrap = () => {
                           />
                         </div>
                         <div className="flex gap-2 p-2 items-end">
-                          {/* <span className="px-2 font-medium flex items-center gap-1.5"><i className="bi-geo-alt-fill text-brand"></i> All of Dubai</span> */}
-                          <LocationProjectSearchDropdown
-                            onLocationSelect={(selectedItem) => {
-                              if (selectedItem.type === "project") {
-                                setProject(String(selectedItem.id));
-                                setLocation(null);
-                                setLinkLocation(String(selectedItem.title));
-                              } else {
-                                setLocation(String(selectedItem.id));
-                                setProject(null);
-                                setLinkLocation(selectedItem.title);
-                              }
-                            }}
+                          <FormField
+                            control={form.control}
+                            name="location"
+                            render={() => (
+                              <FormItem className="w-full max-w-xs">
+                                <FormControl>
+                                  <LocationProjectSearchDropdown
+                                    key={`${location}-${projectId}`}
+                                    defaultValue={selectedLocationDefault}
+                                    inputClassName="!border-transparent ring-offset-transparent focus-visible:ring-1 focus-visible:ring-transparent rounded-xl py-0 h-8 pl-7 w-full"
+                                    onLocationSelect={handleLocationSelect}
+                                    onClear={handleLocationClear}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
                           />
                           <button className="p-0 ml-auto"><i className="bi-arrow-right-circle-fill rounded-full text-3xl md:text-4xl text-brand"></i></button>
                         </div>
@@ -212,9 +250,9 @@ const PageWrap = () => {
                         <div className="ml-auto flex gap-2">
                           <Sheet>
                             <SheetTrigger>
-                              <Button type="button" className="font-normal rounded-xl px-3" variant={"outline"} size={"sm"}>
+                              <div className="font-normal rounded-lg px-3 bg-white text-sm h-8 inline-flex items-center">
                                 <i className="bi-filter"></i> All Filters
-                              </Button>
+                              </div>
                             </SheetTrigger>
                             <SheetContent className="z-[99999]" side={"left"}>
                               <div className="relative w-full flex flex-col h-full space-y-5">
@@ -225,40 +263,45 @@ const PageWrap = () => {
                                 </div>
 
                                 <div className="flex flex-col justify-between items-center w-full h-full">
-                                  <div className="grid grid-cols-1 w-[100%] gap-2">
-                                    <div className="form-label">Location</div>
-                                    <LocationProjectSearchDropdown
-                                      onLocationSelect={(selectedItem) => {
-                                        if (selectedItem.type === "project") {
-                                          setProject(String(selectedItem.id));
-                                          setLocation(null);
-                                          setLinkLocation(String(selectedItem.title));
-                                        } else {
-                                          setLocation(String(selectedItem.id));
-                                          setProject(null);
-                                          setLinkLocation(selectedItem.title);
-                                        }
-                                      }}
-                                    />
+                                  <div className="grid grid-cols-1 w-[100%] gap-6">
+                                    <div className="space-y-2">
+                                      <Label>Location</Label>
+                                      <LocationProjectSearchDropdown
+                                        key={`${location}-${projectId}`}
+                                        defaultValue={selectedLocationDefault}
+                                        onLocationSelect={handleLocationSelect}
+                                        onClear={handleLocationClear}
+                                      />
+                                    </div>
 
-                                    <PropertyCategoryDropdown
-                                      options={allcategories || []}
-                                      setFilterValue={setlistingCategoryId}
-                                      filterValue={listingCategoryId}
-                                      isLoading={isLoadingCategory}
-                                    />
-                                    <ExtraFilter
-                                      beds={tempBedroom}
-                                      baths={tempBathroom}
-                                      setBeds={setTempBedroom}
-                                      setBaths={setTempBathroom}
-                                    />
-                                    <PriceFilter
-                                      minPrice={tempMinPrice}
-                                      maxPrice={tempMaxPrice}
-                                      setMinPrice={setTempMinPrice}
-                                      setMaxPrice={setTempMaxPrice}
-                                    />
+                                    <div className="space-y-2 flex flex-col w-full">
+                                      <ExtraFilterList
+                                        beds={tempBedroom}
+                                        baths={tempBathroom}
+                                        setBeds={setTempBedroom}
+                                        setBaths={setTempBathroom}
+                                      />
+                                    </div>
+
+                                    <div className="space-y-2 flex flex-col w-full">
+                                      <Label>Price</Label>
+                                      <PriceFilterList
+                                        minPrice={tempMinPrice}
+                                        maxPrice={tempMaxPrice}
+                                        setMinPrice={setTempMinPrice}
+                                        setMaxPrice={setTempMaxPrice}
+                                      />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <Label>Category</Label>
+                                      <PropertyCategoryList
+                                        options={allcategories || []}
+                                        setFilterValue={setlistingCategoryId}
+                                        filterValue={listingCategoryId}
+                                        isLoading={isLoadingCategory}
+                                      />
+                                    </div>
                                   </div>
 
                                   <div className="grid grid-cols-2 gap-2 mt-5 w-full">
