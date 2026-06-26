@@ -80,7 +80,7 @@ const BedroomBathroomSelect = ({
           <SelectValue placeholder="Select" />
         </SelectTrigger>
 
-        <SelectContent className="">
+        <SelectContent className="z-[99999]">
           {options.map((s) => (
             <SelectItem value={s} key={s} className="capitalize">
               {s}

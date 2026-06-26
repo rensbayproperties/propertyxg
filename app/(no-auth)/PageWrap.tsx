@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import LocationProjectSearchDropdown from "@/components/LocationProjectSearchDro
 import PropertyCategoryList from "@/components/PropertyCategoryList";
 import ExtraFilterList from "@/components/search/ExtraFilterList";
 import PriceFilterList from "@/components/search/PriceFilterList";
+import AmenityFilterList from "@/components/search/AmenityFilterList";
 import useListingSearch from "@/hooks/useListingSearch";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AnimatedPlaceholderTextarea } from "@/components/AnimatedPlaceholderTextarea";
@@ -17,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import useCategories from "@/hooks/useCategories";
+import useAmenities from "@/hooks/useAmenities";
 
 type Feature = {
   icon?: keyof typeof Icons;
@@ -24,11 +26,55 @@ type Feature = {
   items: string[];
 }
 
+function countSelectedFilters({
+  location,
+  projectId,
+  bedroom,
+  bathroom,
+  minPrice,
+  maxPrice,
+  categoryIds,
+  amenityIds,
+}: {
+  location: string;
+  projectId: string | null;
+  bedroom: string;
+  bathroom: string;
+  minPrice: string;
+  maxPrice: string;
+  categoryIds: string[];
+  amenityIds: string[];
+}) {
+  let count = 0;
+  if (location || projectId) count++;
+  if (bedroom) count++;
+  if (bathroom) count++;
+  if (minPrice) count++;
+  if (maxPrice) count++;
+  count += categoryIds.length;
+  count += amenityIds.length;
+  return count;
+}
+
+const FilterCountBadge = ({ count }: { count: number }) => {
+  if (count <= 0) return null;
+  return (
+    <span className="text-base bg-brand text-white min-w-6 h-6 px-1 rounded-full flex items-center justify-center leading-none font-semibold">
+      {count}
+    </span>
+  );
+};
+
 const PageWrap = () => {
   const {
     allcategories,
     isLoadingCategory,
   } = useCategories()
+
+  const {
+    amenities,
+    isLoadingAmenities,
+  } = useAmenities()
 
   const {
     form,
@@ -40,6 +86,7 @@ const PageWrap = () => {
     setProject,
     setlistingCategoryId,
     listingCategoryId,
+    selectedCategoryIds,
     setMaxPrice,
     setMinPrice,
     maxPrice,
@@ -48,14 +95,66 @@ const PageWrap = () => {
     setBathroom,
     bedroom,
     bathroom,
+    setAmenities,
+    selectedAmenityIds,
+    resetFilters,
   } = useListingSearch()
 
   const [tempMinPrice, setTempMinPrice] = useState(minPrice);
   const [tempMaxPrice, setTempMaxPrice] = useState(maxPrice);
   const [tempBedroom, setTempBedroom] = useState(bedroom);
   const [tempBathroom, setTempBathroom] = useState(bathroom);
+  const [tempAmenities, setTempAmenities] = useState<string[]>(selectedAmenityIds);
   const [LinkLocation, setLinkLocation] = useState("");
   const [filters, setFilters] = useState(false);
+
+  const appliedFilterCount = useMemo(
+    () =>
+      countSelectedFilters({
+        location,
+        projectId,
+        bedroom,
+        bathroom,
+        minPrice,
+        maxPrice,
+        categoryIds: selectedCategoryIds,
+        amenityIds: selectedAmenityIds,
+      }),
+    [
+      location,
+      projectId,
+      bedroom,
+      bathroom,
+      minPrice,
+      maxPrice,
+      selectedCategoryIds,
+      selectedAmenityIds,
+    ],
+  );
+
+  const tempFilterCount = useMemo(
+    () =>
+      countSelectedFilters({
+        location,
+        projectId,
+        bedroom: tempBedroom,
+        bathroom: tempBathroom,
+        minPrice: tempMinPrice,
+        maxPrice: tempMaxPrice,
+        categoryIds: selectedCategoryIds,
+        amenityIds: tempAmenities,
+      }),
+    [
+      location,
+      projectId,
+      tempBedroom,
+      tempBathroom,
+      tempMinPrice,
+      tempMaxPrice,
+      selectedCategoryIds,
+      tempAmenities,
+    ],
+  );
 
   const handleLocationSelect = (selectedItem: {
     type: "location" | "project";
@@ -71,7 +170,7 @@ const PageWrap = () => {
       form.setValue("location", String(selectedItem.id));
       form.setValue("project", "");
       setLocation(String(selectedItem.id));
-      setProject(null);
+      setProject("");
     }
     setLinkLocation(selectedItem.title);
   };
@@ -80,7 +179,7 @@ const PageWrap = () => {
     form.setValue("location", "");
     form.setValue("project", "");
     setLocation("");
-    setProject(null);
+    setProject("");
     setLinkLocation("");
   };
 
@@ -258,89 +357,110 @@ const PageWrap = () => {
                         <div className="ml-auto flex gap-2">
                           <Sheet>
                             <SheetTrigger>
-                              <div className="font-normal rounded-lg px-3 bg-white text-sm h-8 inline-flex items-center">
+                              <div className="font-normal rounded-lg px-3 bg-white text-sm h-8 inline-flex items-center gap-2">
                                 <i className="bi-filter"></i> All Filters
+                                <FilterCountBadge count={appliedFilterCount} />
                               </div>
                             </SheetTrigger>
-                            <SheetContent className="z-[99999]" side={"left"}>
-                              <div className="relative w-full flex flex-col h-full space-y-5">
-                                <div className="flex flex-col items-start justify-between shrink-0">
-                                  <h2 className="text-lg lg:text-2xl font-bold flex gap-2 items-center">
-                                    All Filters <span className="text-base bg-brand text-white w-6 h-6 rounded-full flex items-center justify-center leading-none font-semibold">2</span>
-                                  </h2>
+                            <SheetContent className="z-[99999] px-0" side={"left"}>
+                              <div className="relative w-full flex flex-col h-full space-y-5 overflow-y-scroll justify-between gap-6">
+                                <div className="space-y-6">
+                                  <div className="sticky top-0 left-0 grid grid-cols-2 gap-2 mt-auto w-full bg-background/90 backdrop-blur px-4 py-2 md:px-6 z-[999999] border-b">
+                                    <div className="flex flex-col items-start justify-between shrink-0">
+                                      <h2 className="text-lg lg:text-2xl font-bold flex gap-2 items-center">
+                                        All Filters
+                                        <FilterCountBadge count={tempFilterCount} />
+                                      </h2>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col justify-between items-center w-full px-4 md:px-6">
+                                    <div className="grid grid-cols-1 w-[100%] gap-6">
+                                      <div className="space-y-2">
+                                        <Label>Location</Label>
+                                        <LocationProjectSearchDropdown
+                                          key={`${location}-${projectId}`}
+                                          defaultValue={selectedLocationDefault}
+                                          onLocationSelect={handleLocationSelect}
+                                          onClear={handleLocationClear}
+                                        />
+                                      </div>
+
+                                      <div className="space-y-2 flex flex-col w-full">
+                                        <ExtraFilterList
+                                          beds={tempBedroom}
+                                          baths={tempBathroom}
+                                          setBeds={setTempBedroom}
+                                          setBaths={setTempBathroom}
+                                        />
+                                      </div>
+
+                                      <div className="space-y-2 flex flex-col w-full">
+                                        <Label>Price</Label>
+                                        <PriceFilterList
+                                          minPrice={tempMinPrice}
+                                          maxPrice={tempMaxPrice}
+                                          setMinPrice={setTempMinPrice}
+                                          setMaxPrice={setTempMaxPrice}
+                                        />
+                                      </div>
+
+                                      <div className="space-y-2">
+                                        <Label>Category</Label>
+                                        <PropertyCategoryList
+                                          options={allcategories || []}
+                                          setFilterValue={setlistingCategoryId}
+                                          filterValue={listingCategoryId}
+                                          isLoading={isLoadingCategory}
+                                        />
+                                      </div>
+
+                                      <div className="space-y-2">
+                                        <Label>Amenities</Label>
+                                        <AmenityFilterList
+                                          options={amenities || []}
+                                          value={tempAmenities}
+                                          onChange={setTempAmenities}
+                                          isLoading={isLoadingAmenities}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
+                                <div className="sticky bottom-0 left-0 grid grid-cols-2 gap-2 w-full bg-background/90 backdrop-blur border-t p-4 items-center">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full sm:w-auto"
+                                    onClick={() => {
+                                      setTempMinPrice("");
+                                      setTempMaxPrice("");
+                                      setTempBedroom("");
+                                      setTempBathroom("");
+                                      setTempAmenities([]);
+                                      handleLocationClear();
+                                      resetFilters();
+                                    }}
+                                  >Clear all</Button>
 
-                                <div className="flex flex-col justify-between items-center w-full h-full">
-                                  <div className="grid grid-cols-1 w-[100%] gap-6">
-                                    <div className="space-y-2">
-                                      <Label>Location</Label>
-                                      <LocationProjectSearchDropdown
-                                        key={`${location}-${projectId}`}
-                                        defaultValue={selectedLocationDefault}
-                                        onLocationSelect={handleLocationSelect}
-                                        onClear={handleLocationClear}
-                                      />
-                                    </div>
+                                  <Button
+                                    type="button"
+                                    variant="brand"
+                                    onClick={() => {
+                                      if (tempMinPrice) setMinPrice(tempMinPrice);
+                                      if (tempMaxPrice) setMaxPrice(tempMaxPrice);
+                                      if (tempBedroom) setBedroom(tempBedroom);
+                                      if (tempBathroom) setBathroom(tempBathroom);
+                                      setAmenities(
+                                        tempAmenities.length
+                                          ? tempAmenities.join(",")
+                                          : "",
+                                      );
 
-                                    <div className="space-y-2 flex flex-col w-full">
-                                      <ExtraFilterList
-                                        beds={tempBedroom}
-                                        baths={tempBathroom}
-                                        setBeds={setTempBedroom}
-                                        setBaths={setTempBathroom}
-                                      />
-                                    </div>
-
-                                    <div className="space-y-2 flex flex-col w-full">
-                                      <Label>Price</Label>
-                                      <PriceFilterList
-                                        minPrice={tempMinPrice}
-                                        maxPrice={tempMaxPrice}
-                                        setMinPrice={setTempMinPrice}
-                                        setMaxPrice={setTempMaxPrice}
-                                      />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                      <Label>Category</Label>
-                                      <PropertyCategoryList
-                                        options={allcategories || []}
-                                        setFilterValue={setlistingCategoryId}
-                                        filterValue={listingCategoryId}
-                                        isLoading={isLoadingCategory}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-2 mt-5 w-full">
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      className="w-full sm:w-auto"
-                                    >Reset</Button>
-
-                                    <Button
-                                      type="button"
-                                      variant="brand"
-                                      onClick={async () => {
-                                        const updates: Promise<any>[] = [];
-                                        if (tempMinPrice)
-                                          updates.push(setMinPrice(tempMinPrice));
-                                        if (tempMaxPrice)
-                                          updates.push(setMaxPrice(tempMaxPrice));
-                                        if (tempBedroom)
-                                          updates.push(setBedroom(tempBedroom));
-                                        if (tempBathroom)
-                                          updates.push(setBathroom(tempBathroom));
-
-                                        await Promise.all(updates);
-
-                                        setFilters(false);
-                                      }}
-                                    >
-                                      Apply
-                                    </Button>
-                                  </div>
+                                      setFilters(false);
+                                    }}
+                                  >
+                                    Apply
+                                  </Button>
                                 </div>
                               </div>
                             </SheetContent>

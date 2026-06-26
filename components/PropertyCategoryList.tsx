@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface ListingCategory {
   id: string;
@@ -41,8 +34,7 @@ const PropertyCategoryList = ({
   isLoading,
   delimiter = ".",
 }: PropertyCategoryListProps) => {
-  const [activeTab, setActiveTab] = useState("Residential");
-  const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("Commercial");
 
   const filteredOptions = useMemo(() => {
     return (
@@ -64,10 +56,8 @@ const PropertyCategoryList = ({
   const [tempSelected, setTempSelected] = useState<string[]>(appliedValues);
 
   useEffect(() => {
-    if (open) {
-      setTempSelected(appliedValues);
-    }
-  }, [open]);
+    setTempSelected(appliedValues);
+  }, [appliedValues]);
 
   const selectedCategories = useMemo(() => {
     return filteredOptions
@@ -76,18 +66,13 @@ const PropertyCategoryList = ({
   }, [tempSelected, filteredOptions]);
 
   const handleSelect = (id: string) => {
-    setTempSelected((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
-
-  const handleReset = () => {
-    setTempSelected([]);
-  };
-
-  const handleDone = () => {
-    setFilterValue(tempSelected.join(delimiter));
-    setOpen(false);
+    setTempSelected((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((item) => item !== id)
+        : [...prev, id];
+      setFilterValue(next.join(delimiter));
+      return next;
+    });
   };
 
   return (
@@ -100,17 +85,17 @@ const PropertyCategoryList = ({
           : activeTab || "Category"}
       </div> */}
 
-      <div className="border border-input-border rounded-md bg-zinc-50">
+      <div className="border border-input-border rounded-md bg-zinc-200">
         <div className="flex items-center border-b mb-4">
           {filteredOptions?.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.name)}
               className={cn(
-                "flex-1 py-2 px-3 text-sms font-medium transition-all border-b text-left",
+                "flex-1 py-2 px-3 text-sms font-medium transition-all border-b text-lefts",
                 activeTab === tab.name
-                  ? "border-zinc-400 text-brand"
-                  : "border-transparent",
+                  ? "border-brand text-brand"
+                  : "border-input-border",
               )}
             >
               {tab.name}
@@ -133,7 +118,7 @@ const PropertyCategoryList = ({
                     key={item.id}
                     onClick={() => handleSelect(item.id)}
                     className={cn(
-                      "flex items-center gap-3 border rounded-lg px-3 py-3 transition-all",
+                      "flex items-center gap-3 border rounded-lg px-3 py-3 transition-all bg-white",
                       isActive
                         ? "border-brand bg-brand/10"
                         : "border-input-border hover:border-zinc-500",

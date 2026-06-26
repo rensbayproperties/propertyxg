@@ -1,97 +1,63 @@
 "use client";
-import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { searchParams } from "@/lib/searchParams";
-import { parseAsInteger, useQueryState } from "nuqs";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useCallback, useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
 import useAxiosAuth from "./useAxiosAuth";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { aiSearchSchema } from "@/lib/schemas";
-import { useRouter } from "next/navigation";
 
 type FormData = z.infer<typeof aiSearchSchema>;
 
+const CATEGORY_DELIMITER = ".";
+
 const useListingSearch = () => {
-  const router = useRouter()
   const [open, setOpen] = useState(false);
   const [openNotify, setOpenNotify] = useState(false);
   const axiosAuth = useAxiosAuth();
-  const [filterStatus, setFilterStatus] = useQueryState(
-    "status",
-    searchParams.status.withOptions({ shallow: false }).withDefault("listing"),
-  );
+  const [filterStatus, setFilterStatus] = useState("listing");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(
     null,
   );
 
-  const [searchQuery, setSearchQuery] = useQueryState(
-    "title",
-    searchParams.q
-      .withOptions({ shallow: false, throttleMs: 1000 })
-      .withDefault(""),
-  );
-  const [minPrice, setMinPrice] = useQueryState(
-    "minPrice",
-    searchParams.q
-      .withOptions({ shallow: false, throttleMs: 1000 })
-      .withDefault(""),
-  );
-  const [maxPrice, setMaxPrice] = useQueryState(
-    "maxPrice",
-    searchParams.q
-      .withOptions({ shallow: false, throttleMs: 1000 })
-      .withDefault(""),
-  );
-  const [bedroom, setBedroom] = useQueryState(
-    "bedroom",
-    searchParams.q
-      .withOptions({ shallow: false, throttleMs: 1000 })
-      .withDefault(""),
-  );
-  const [bathroom, setBathroom] = useQueryState(
-    "bathroom",
-    searchParams.q
-      .withOptions({ shallow: false, throttleMs: 1000 })
-      .withDefault(""),
-  );
-  const [listingCategoryId, setlistingCategoryId] = useQueryState(
-    "category",
-    searchParams.status.withOptions({ shallow: false }).withDefault(""),
-  );
-  // const [location, setLocation] = useQueryState(
-  //   "locationId",
-  //   searchParams.status.withOptions({ shallow: false }).withDefault(""),
-  // );
-  const [location, setLocation] = useState("");
-  const [projectId, setProject] = useQueryState(
-    "projectId",
-    searchParams.status.withOptions({ shallow: false }).withDefault(""),
-  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [bedroom, setBedroom] = useState("");
+  const [bathroom, setBathroom] = useState("");
+  const [listingCategoryId, setlistingCategoryId] = useState("");
+  const [amenities, setAmenities] = useState("");
 
-  const [currentPage, setCurrentPage] = useQueryState(
-    "page",
-    parseAsInteger.withOptions({ shallow: false }).withDefault(1),
-  );
-  const [pageSize, setPageSize] = useQueryState(
-    "limit",
-    parseAsInteger
-      .withOptions({ shallow: false, history: "push" })
-      .withDefault(50),
-  );
+  const selectedAmenityIds = useMemo(() => {
+    if (!amenities) return [];
+    return amenities.split(",").filter(Boolean);
+  }, [amenities]);
+
+  const selectedCategoryIds = useMemo(() => {
+    if (!listingCategoryId) return [];
+    return listingCategoryId.split(CATEGORY_DELIMITER).filter(Boolean);
+  }, [listingCategoryId]);
+  const [location, setLocation] = useState("");
+  const [projectId, setProject] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   const resetFilters = useCallback(() => {
-    setSearchQuery(null);
-    setlistingCategoryId(null);
+    setSearchQuery("");
+    setlistingCategoryId("");
     setLocation("");
-    setMinPrice(null);
-    setMaxPrice(null);
-    setBedroom(null);
-    setBathroom(null);
-    setCurrentPage(null)
-  }, [setSearchQuery, setlistingCategoryId]);
+    setMinPrice("");
+    setMaxPrice("");
+    setBedroom("");
+    setBathroom("");
+    setAmenities("");
+    setProject("");
+    setFilterStatus("listing");
+    setCurrentPage(1);
+  }, []);
 
   const dealTypeOptions = [
     { value: "RENT", label: "Rent" },
@@ -104,24 +70,24 @@ const useListingSearch = () => {
       !!projectId ||
       !!searchQuery ||
       !!listingCategoryId ||
-      !!listingCategoryId ||
       !!location ||
       !!bedroom ||
       !!bathroom ||
       !!minPrice ||
-      !!maxPrice
+      !!maxPrice ||
+      !!amenities
     );
   }, [
     currentPage,
     projectId,
     searchQuery,
     listingCategoryId,
-    listingCategoryId,
     location,
     minPrice,
     maxPrice,
     bedroom,
     bathroom,
+    amenities,
   ]);
 
   const form = useForm<FormData>({
@@ -167,6 +133,7 @@ const useListingSearch = () => {
     isAnyFilterActive,
     listingCategoryId,
     setlistingCategoryId,
+    selectedCategoryIds,
     location,
     setLocation,
     projectId,
@@ -187,6 +154,9 @@ const useListingSearch = () => {
     setBedroom,
     bathroom,
     setBathroom,
+    amenities,
+    setAmenities,
+    selectedAmenityIds,
     filterStatus,
     setFilterStatus,
     selectedListingId,
