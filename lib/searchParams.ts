@@ -18,6 +18,7 @@ export const searchParams = {
   listType: parseAsString,
   minPrice: parseAsString,
   maxPrice: parseAsString,
+  amenities: parseAsString,
   name: parseAsString,
 };
 

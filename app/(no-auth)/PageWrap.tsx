@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Container from "@/components/Container";
@@ -19,6 +20,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import useCategories from "@/hooks/useCategories";
 import useAmenities from "@/hooks/useAmenities";
+import { buildListingSearchUrl } from "@/lib/buildListingSearchUrl";
 
 type Feature = {
   icon?: keyof typeof Icons;
@@ -66,6 +68,8 @@ const FilterCountBadge = ({ count }: { count: number }) => {
 };
 
 const PageWrap = () => {
+  const router = useRouter();
+
   const {
     allcategories,
     isLoadingCategory,
@@ -88,14 +92,10 @@ const PageWrap = () => {
     listingCategoryId,
     selectedCategoryIds,
     setMaxPrice,
-    setMinPrice,
     maxPrice,
     minPrice,
-    setBedroom,
-    setBathroom,
     bedroom,
     bathroom,
-    setAmenities,
     selectedAmenityIds,
     resetFilters,
   } = useListingSearch()
@@ -106,7 +106,6 @@ const PageWrap = () => {
   const [tempBathroom, setTempBathroom] = useState(bathroom);
   const [tempAmenities, setTempAmenities] = useState<string[]>(selectedAmenityIds);
   const [LinkLocation, setLinkLocation] = useState("");
-  const [filters, setFilters] = useState(false);
 
   const appliedFilterCount = useMemo(
     () =>
@@ -359,7 +358,7 @@ const PageWrap = () => {
                             <SheetTrigger>
                               <div className="font-normal rounded-lg px-3 bg-white text-sm h-8 inline-flex items-center gap-2">
                                 <i className="bi-filter"></i> All Filters
-                                <FilterCountBadge count={appliedFilterCount} />
+                                <FilterCountBadge count={tempFilterCount} />
                               </div>
                             </SheetTrigger>
                             <SheetContent className="z-[99999] px-0" side={"left"}>
@@ -446,20 +445,23 @@ const PageWrap = () => {
                                     type="button"
                                     variant="brand"
                                     onClick={() => {
-                                      if (tempMinPrice) setMinPrice(tempMinPrice);
-                                      if (tempMaxPrice) setMaxPrice(tempMaxPrice);
-                                      if (tempBedroom) setBedroom(tempBedroom);
-                                      if (tempBathroom) setBathroom(tempBathroom);
-                                      setAmenities(
-                                        tempAmenities.length
-                                          ? tempAmenities.join(",")
-                                          : "",
+                                      router.push(
+                                        buildListingSearchUrl({
+                                          locationId: location || undefined,
+                                          projectId: projectId || undefined,
+                                          bedroom: tempBedroom || undefined,
+                                          bathroom: tempBathroom || undefined,
+                                          minPrice: tempMinPrice || undefined,
+                                          maxPrice: tempMaxPrice || undefined,
+                                          category: listingCategoryId || undefined,
+                                          amenities: tempAmenities.length
+                                            ? tempAmenities.join(",")
+                                            : undefined,
+                                        }),
                                       );
-
-                                      setFilters(false);
                                     }}
                                   >
-                                    Apply
+                                    See Properties
                                   </Button>
                                 </div>
                               </div>
