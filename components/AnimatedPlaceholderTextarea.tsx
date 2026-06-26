@@ -5,8 +5,8 @@ import { Textarea, TextareaProps } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const TYPING_SPEED = 60;
-const DELETING_SPEED = 40;
 const PAUSE_DURATION = 1500;
+const FADE_DURATION = 300;
 
 type AnimatedPlaceholderTextareaProps = TextareaProps & {
   placeholders: string[];
@@ -19,8 +19,16 @@ const AnimatedPlaceholderTextarea = React.forwardRef<
   const [isFocused, setIsFocused] = React.useState(false);
   const [displayText, setDisplayText] = React.useState("");
   const [showCursor, setShowCursor] = React.useState(true);
+  const [overlayOpacity, setOverlayOpacity] = React.useState(1);
 
   const showOverlay = !isFocused && !String(value ?? "").trim();
+
+  React.useEffect(() => {
+    if (!showOverlay) {
+      setOverlayOpacity(1);
+      return;
+    }
+  }, [showOverlay]);
 
   React.useEffect(() => {
     if (!showOverlay || placeholders.length === 0) {
@@ -51,12 +59,15 @@ const AnimatedPlaceholderTextarea = React.forwardRef<
         await sleep(PAUSE_DURATION);
         if (cancelled) return;
 
-        for (let i = currentText.length - 1; i >= 0 && !cancelled; i--) {
-          setDisplayText(currentText.slice(0, i));
-          await sleep(DELETING_SPEED);
-        }
+        setOverlayOpacity(0);
+        await sleep(FADE_DURATION);
+        if (cancelled) return;
 
         index = (index + 1) % placeholders.length;
+        setDisplayText("");
+        setOverlayOpacity(1);
+        await sleep(FADE_DURATION);
+        if (cancelled) return;
       }
     };
 
@@ -91,7 +102,8 @@ const AnimatedPlaceholderTextarea = React.forwardRef<
     <div className="relative w-full">
       {showOverlay && (
         <div
-          className="pointer-events-none absolute left-3 top-3 text-lg text-muted-foreground"
+          className="pointer-events-none absolute left-3 top-3 text-lg text-muted-foreground transition-opacity duration-300"
+          style={{ opacity: overlayOpacity }}
           aria-hidden
         >
           {displayText}

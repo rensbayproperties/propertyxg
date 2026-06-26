@@ -44,7 +44,7 @@ const PriceFilterList = ({
             )}
           />
         </div>
-        <div><i className="bi-dash"></i></div>
+        {/* <div><i className="bi-dash"></i></div> */}
         <div className="space-y-1">
           {/* <Label htmlFor="max-price">
             Maximum

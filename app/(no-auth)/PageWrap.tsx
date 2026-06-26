@@ -206,6 +206,14 @@ const PageWrap = () => {
                                 <FormControl>
                                   <AnimatedPlaceholderTextarea
                                     {...field}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault();
+                                        if (!isPending) {
+                                          e.currentTarget.form?.requestSubmit();
+                                        }
+                                      }
+                                    }}
                                     placeholders={[
                                       "Furnished 1 bedroom apartment around Business Bay",
                                       "Apartments with a gym in Palm Jumeriah",

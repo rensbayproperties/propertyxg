@@ -136,12 +136,14 @@ const useListingSearch = () => {
   const { mutateAsync: submit, isPending } =
     useMutation({
       mutationFn: (credentials: FormData) =>
-        axiosAuth.post("/ai/crm-parsess", credentials),
+        axiosAuth.post("/ai/crm-parse", credentials),
       onSuccess: (res, req) => {
         if (res?.data?.success && res?.data?.data) {
           const data = res?.data?.data
-          const url = `/rent?bed=${data?.bedroom}&bath=${data?.bathroom}&minPrice=${data?.minPrice}&maxPrice=${data?.maxPrice}&location=${data?.location}`
-          router.push(url)
+          const url = `/rent?bed=${data?.bedroom}&bath=${data?.bathroom}&minPrice=${data?.minPrice}&maxPrice=${data?.maxPrice}&location=${data?.location?.locationId || form.getValues('location') || ""}&project=${data?.location?.locationId || form.getValues('location') || ""}`
+          console.log(url)
+          // isFurnished
+          // router.push(url)
         } else {
           toast.error("Error", {
             description: res?.data?.message || "An error occured",
