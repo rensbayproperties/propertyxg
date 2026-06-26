@@ -7,12 +7,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { aiSearchSchema } from "@/lib/schemas";
+import { useRouter } from "next/navigation";
+import {
+  buildUrlFromAiParseResponse,
+  type SearchType,
+} from "@/lib/buildListingSearchUrl";
 
 type FormData = z.infer<typeof aiSearchSchema>;
+type SubmitPayload = FormData & { searchType?: SearchType };
 
 const CATEGORY_DELIMITER = ".";
 
 const useListingSearch = () => {
+  const router = useRouter()
   const [open, setOpen] = useState(false);
   const [openNotify, setOpenNotify] = useState(false);
   const axiosAuth = useAxiosAuth();
@@ -101,15 +108,26 @@ const useListingSearch = () => {
 
   const { mutateAsync: submit, isPending } =
     useMutation({
-      mutationFn: (credentials: FormData) =>
+      mutationFn: ({ searchType: _searchType, ...credentials }: SubmitPayload) =>
         axiosAuth.post("/ai/crm-parse", credentials),
       onSuccess: (res, req) => {
         if (res?.data?.success && res?.data?.data) {
-          const data = res?.data?.data
-          const url = `/rent?bed=${data?.bedroom}&bath=${data?.bathroom}&minPrice=${data?.minPrice}&maxPrice=${data?.maxPrice}&location=${data?.location?.locationId || form.getValues('location') || ""}&project=${data?.location?.locationId || form.getValues('location') || ""}`
-          console.log(url)
-          // isFurnished
-          // router.push(url)
+          const url = buildUrlFromAiParseResponse(
+            res.data.data,
+            req,
+            {
+              location,
+              projectId,
+              bedroom,
+              bathroom,
+              minPrice,
+              maxPrice,
+              listingCategoryId,
+              amenities,
+            },
+            req.searchType ?? "sale",
+          );
+          router.push(url);
         } else {
           toast.error("Error", {
             description: res?.data?.message || "An error occured",
@@ -118,9 +136,9 @@ const useListingSearch = () => {
       },
     });
 
-  const onSubmit = async (values: FormData) => {
+  const onSubmit = async (values: FormData, searchType: SearchType = "sale") => {
     try {
-      await submit(values);
+      await submit({ ...values, searchType });
     } catch (err) {
       toast("Failed", {
         description: "Something went wrong. Please try again later",

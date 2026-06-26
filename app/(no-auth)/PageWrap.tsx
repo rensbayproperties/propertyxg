@@ -388,26 +388,26 @@ const PageWrap = () => {
     },
   ]
 
-  // if (isPending) {
-  //   return (
-  //     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/50 backdrop-blur-sm">
-  //       <div className="flex flex-col items-center gap-4">
-  //         {/* Spinner */}
-  //         <div className="relative flex items-center justify-center">
-  //           <div className="h-8 w-8 rounded-full border-4 border-purple-200"></div>
+  if (isPending) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/50 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-4">
+          {/* Spinner */}
+          <div className="relative flex items-center justify-center">
+            <div className="h-8 w-8 rounded-full border-4 border-purple-200"></div>
 
-  //           <div className="absolute h-8 w-8 rounded-full border-4 border-t-purple-600 border-r-purple-500 border-b-transparent border-l-transparent animate-spin"></div>
-  //         </div>
+            <div className="absolute h-8 w-8 rounded-full border-4 border-t-purple-600 border-r-purple-500 border-b-transparent border-l-transparent animate-spin"></div>
+          </div>
 
-  //         <div className="text-center">
-  //           <h1 className="text-lg font-bold text-purple-700 tracking-wide animate-pulse">
-  //             Xg AI is Thinking...
-  //           </h1>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+          <div className="text-center">
+            <h1 className="text-lg font-bold text-purple-700 tracking-wide animate-pulse">
+              Xg AI is Thinking...
+            </h1>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -425,7 +425,7 @@ const PageWrap = () => {
               <Container size="sm">
                 <Form {...form}>
                   <form
-                    onSubmit={form.handleSubmit(onSubmit)}
+                    onSubmit={form.handleSubmit((values) => onSubmit(values, searchType))}
                     className="flex flex-col gap-2"
                   >
                     <div className="flex items-center justify-center">
