@@ -27,7 +27,7 @@ const RenderIcon = ({ icon }: { icon?: string }) => {
   return <i className={`bi ${iconClass} text-3xl shrink-0`} />;
 };
 
-const INITIAL_VISIBLE_COUNT = 12;
+const INITIAL_VISIBLE_COUNT = 6;
 
 const AmenityFilterList = ({
   options,

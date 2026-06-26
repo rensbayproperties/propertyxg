@@ -124,6 +124,11 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     searchParams.status.withOptions({ shallow: false }).withDefault(""),
   );
 
+  const [furnished, setFurnished] = useQueryState(
+    "furnished",
+    searchParams.status.withOptions({ shallow: false }).withDefault(""),
+  );
+
   const [currentPage, setCurrentPage] = useQueryState(
     "page",
     parseAsInteger.withOptions({ shallow: false }).withDefault(1),
@@ -148,6 +153,7 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     setAssignedTo(null);
     setProject(null);
     setLanguage(null);
+    setFurnished(null);
     setCurrentPage(null)
   }, [setSearchQuery, setlistingCategoryId]);
 
@@ -171,7 +177,8 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
       !!amenities ||
       !!minPrice ||
       !!assignedTo ||
-      !!maxPrice
+      !!maxPrice ||
+      !!furnished
     );
   }, [
     currentPage,
@@ -188,6 +195,7 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     bathroom,
     amenities,
     assignedTo,
+    furnished,
   ]);
 
   const { data: pType, isLoading: gettingCategory } = useQuery({
@@ -236,12 +244,13 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
         language,
         projectId,
         amenities,
+        furnished,
         opt
       },
     ],
     queryFn: async () => {
       const response = await axiosAuth.get(
-        `/listing/${opt}?limit=${pageSize}&page=${currentPage}&locationId=${location}&projectId=${projectId}&dealType=${listType}&language=${language}&category=${listingCategoryId}&minPrice=${Number(minPrice)}&maxPrice=${Number(maxPrice)}&bedroom=${bedroom}&bathroom=${bathroom}&amenities=${amenities}`,
+        `/listing/${opt}?limit=${pageSize}&page=${currentPage}&locationId=${location}&projectId=${projectId}&dealType=${listType}&language=${language}&category=${listingCategoryId}&minPrice=${Number(minPrice)}&maxPrice=${Number(maxPrice)}&bedroom=${bedroom}&bathroom=${bathroom}&amenities=${amenities}${furnished ? `&furnished=${furnished}` : ""}`,
       );
       const result = response.data;
       return result;
@@ -575,6 +584,8 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     setBathroom,
     amenities,
     setAmenities,
+    furnished,
+    setFurnished,
     assignedTo,
     setAssignedTo,
     viewMode,

@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,13 @@ import { AnimatedPlaceholderTextarea } from "@/components/AnimatedPlaceholderTex
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { DataTableFilterBox } from "@/components/ui/table/data-table-filter-box";
+import { DataTableFilter } from "@/components/ui/table/data-table-filter";
 import useCategories from "@/hooks/useCategories";
 import useAmenities from "@/hooks/useAmenities";
-import { buildListingSearchUrl } from "@/lib/buildListingSearchUrl";
+import { buildListingSearchUrl, type SearchType } from "@/lib/buildListingSearchUrl";
 
 type Feature = {
   icon?: keyof typeof Icons;
@@ -37,6 +41,7 @@ function countSelectedFilters({
   maxPrice,
   categoryIds,
   amenityIds,
+  furnished,
 }: {
   location: string;
   projectId: string | null;
@@ -46,6 +51,7 @@ function countSelectedFilters({
   maxPrice: string;
   categoryIds: string[];
   amenityIds: string[];
+  furnished: boolean;
 }) {
   let count = 0;
   if (location || projectId) count++;
@@ -55,7 +61,93 @@ function countSelectedFilters({
   if (maxPrice) count++;
   count += categoryIds.length;
   count += amenityIds.length;
+  if (furnished) count++;
   return count;
+}
+
+function countAgentFilters({
+  location,
+  projectId,
+  agentName,
+  language,
+  minPrice,
+  maxPrice,
+  dealType,
+}: {
+  location: string;
+  projectId: string | null;
+  agentName: string;
+  language: string;
+  minPrice: string;
+  maxPrice: string;
+  dealType: string;
+}) {
+  let count = 0;
+  if (location || projectId) count++;
+  if (agentName) count++;
+  if (language) count++;
+  if (minPrice) count++;
+  if (maxPrice) count++;
+  if (dealType) count++;
+  return count;
+}
+
+const SEARCH_TYPE_OPTIONS = [
+  { value: "sale", label: "For sale" },
+  { value: "rent", label: "For rent" },
+  { value: "agents", label: "Agents" },
+] as const;
+
+const AVAILABLE_LANGUAGES = [
+  { value: "arabic", label: "Arabic" },
+  { value: "english", label: "English" },
+  { value: "farsi", label: "Farsi" },
+  { value: "french", label: "French" },
+  { value: "hindi", label: "Hindi" },
+  { value: "italian", label: "Italian" },
+  { value: "russian", label: "Russian" },
+  { value: "spanish", label: "Spanish" },
+  { value: "urdu", label: "Urdu" },
+  { value: "others", label: "Others" },
+];
+
+function SearchTypeRadioGroup({
+  idPrefix,
+  value,
+  onValueChange,
+  className,
+}: {
+  idPrefix: string;
+  value: SearchType;
+  onValueChange: (value: SearchType) => void;
+  className?: string;
+}) {
+  return (
+    <RadioGroup
+      value={value}
+      onValueChange={(v) => onValueChange(v as SearchType)}
+      className={
+        className ??
+        "flex items-center bg-white rounded-full p-1 shadow-sm max-w-sm w-full justify-between gap-1"
+      }
+    >
+      {SEARCH_TYPE_OPTIONS.map((option) => (
+        <div key={option.value} className="flex-1">
+          <RadioGroupItem
+            value={option.value}
+            id={`${idPrefix}-${option.value}`}
+            className="peer sr-only"
+          />
+          <Label
+            htmlFor={`${idPrefix}-${option.value}`}
+            className="flex items-center justify-center cursor-pointer text-center text-sm font-medium rounded-full py-1.5 px-3 transition-all text-slate-900 dark:text-slate-100 peer-data-[state=checked]:bg-[#EBE2F9] peer-data-[state=checked]:text-purple-950 hover:bg-slate-50"
+          >
+            {option.label}
+          </Label>
+        </div>
+      ))}
+    </RadioGroup>
+  );
 }
 
 const FilterCountBadge = ({ count }: { count: number }) => {
@@ -98,13 +190,19 @@ const PageWrap = () => {
     bathroom,
     selectedAmenityIds,
     resetFilters,
+    dealTypeOptions,
   } = useListingSearch()
 
+  const [searchType, setSearchType] = useState<SearchType>("sale");
   const [tempMinPrice, setTempMinPrice] = useState(minPrice);
   const [tempMaxPrice, setTempMaxPrice] = useState(maxPrice);
   const [tempBedroom, setTempBedroom] = useState(bedroom);
   const [tempBathroom, setTempBathroom] = useState(bathroom);
   const [tempAmenities, setTempAmenities] = useState<string[]>(selectedAmenityIds);
+  const [tempAgentName, setTempAgentName] = useState("");
+  const [tempLanguage, setTempLanguage] = useState("");
+  const [tempDealType, setTempDealType] = useState("");
+  const [tempFurnished, setTempFurnished] = useState(false);
   const [LinkLocation, setLinkLocation] = useState("");
 
   const appliedFilterCount = useMemo(
@@ -118,6 +216,7 @@ const PageWrap = () => {
         maxPrice,
         categoryIds: selectedCategoryIds,
         amenityIds: selectedAmenityIds,
+        furnished: false,
       }),
     [
       location,
@@ -131,29 +230,104 @@ const PageWrap = () => {
     ],
   );
 
-  const tempFilterCount = useMemo(
-    () =>
-      countSelectedFilters({
+  const tempFilterCount = useMemo(() => {
+    if (searchType === "agents") {
+      return countAgentFilters({
         location,
         projectId,
-        bedroom: tempBedroom,
-        bathroom: tempBathroom,
+        agentName: tempAgentName,
+        language: tempLanguage,
         minPrice: tempMinPrice,
         maxPrice: tempMaxPrice,
-        categoryIds: selectedCategoryIds,
-        amenityIds: tempAmenities,
-      }),
-    [
+        dealType: tempDealType,
+      });
+    }
+
+    return countSelectedFilters({
       location,
       projectId,
-      tempBedroom,
-      tempBathroom,
-      tempMinPrice,
-      tempMaxPrice,
-      selectedCategoryIds,
-      tempAmenities,
-    ],
+      bedroom: tempBedroom,
+      bathroom: tempBathroom,
+      minPrice: tempMinPrice,
+      maxPrice: tempMaxPrice,
+      categoryIds: selectedCategoryIds,
+      amenityIds: tempAmenities,
+      furnished: tempFurnished,
+    });
+  }, [
+    searchType,
+    location,
+    projectId,
+    tempAgentName,
+    tempLanguage,
+    tempDealType,
+    tempBedroom,
+    tempBathroom,
+    tempMinPrice,
+    tempMaxPrice,
+    selectedCategoryIds,
+    tempAmenities,
+    tempFurnished,
+  ]);
+
+  const setTempDealTypeFilter = useCallback(
+    (value: string | ((old: string) => string | null) | null) => {
+      if (value === null) {
+        setTempDealType("");
+      } else if (typeof value === "function") {
+        setTempDealType((prev) => value(prev) ?? "");
+      } else {
+        setTempDealType(value);
+      }
+      return Promise.resolve(new URLSearchParams());
+    },
+    [],
   );
+
+  const handleClearAllFilters = () => {
+    setTempMinPrice("");
+    setTempMaxPrice("");
+    setTempBedroom("");
+    setTempBathroom("");
+    setTempAmenities([]);
+    setTempAgentName("");
+    setTempLanguage("");
+    setTempDealType("");
+    setTempFurnished(false);
+    handleLocationClear();
+    resetFilters();
+  };
+
+  const handleSeeProperties = () => {
+    if (searchType === "agents") {
+      router.push(
+        buildListingSearchUrl("agents", {
+          locationId: location || undefined,
+          projectId: projectId || undefined,
+          search: tempAgentName || undefined,
+          language: tempLanguage || undefined,
+          min: tempMinPrice || undefined,
+          max: tempMaxPrice || undefined,
+          dealType: tempDealType || undefined,
+        }),
+      );
+      return;
+    }
+
+    router.push(
+      buildListingSearchUrl(searchType, {
+        locationId: location || undefined,
+        projectId: projectId || undefined,
+        bedroom: tempBedroom || undefined,
+        bathroom: tempBathroom || undefined,
+        minPrice: tempMinPrice || undefined,
+        maxPrice: tempMaxPrice || undefined,
+        category: listingCategoryId || undefined,
+        amenities: tempAmenities.length ? tempAmenities.join(",") : undefined,
+        furnished: tempFurnished ? "true" : undefined,
+      }),
+    );
+  };
 
   const handleLocationSelect = (selectedItem: {
     type: "location" | "project";
@@ -255,43 +429,11 @@ const PageWrap = () => {
                     className="flex flex-col gap-2"
                   >
                     <div className="flex items-center justify-center">
-                      <RadioGroup
-                        defaultValue="sale"
-                        className="flex items-center bg-white rounded-full p-1 shadow-sm max-w-sm w-full justify-between gap-1"
-                      >
-                        {/* For Sale Option */}
-                        <div className="flex-1">
-                          <RadioGroupItem value="sale" id="sale" className="peer sr-only" />
-                          <Label
-                            htmlFor="sale"
-                            className="flex items-center justify-center cursor-pointer text-center text-sm font-medium rounded-full py-1.5 px-3 transition-all text-slate-900 dark:text-slate-100 peer-data-[state=checked]:bg-[#EBE2F9] peer-data-[state=checked]:text-purple-950 hover:bg-slate-50"
-                          >
-                            For sale
-                          </Label>
-                        </div>
-
-                        {/* For Rent Option */}
-                        <div className="flex-1">
-                          <RadioGroupItem value="rent" id="rent" className="peer sr-only" />
-                          <Label
-                            htmlFor="rent"
-                            className="flex items-center justify-center cursor-pointer text-center text-sm font-medium rounded-full py-1.5 px-3 transition-all text-slate-900 dark:text-slate-100 peer-data-[state=checked]:bg-[#EBE2F9] peer-data-[state=checked]:text-purple-950 hover:bg-slate-50"
-                          >
-                            For rent
-                          </Label>
-                        </div>
-
-                        {/* Agents Option */}
-                        <div className="flex-1">
-                          <RadioGroupItem value="agents" id="agents" className="peer sr-only" />
-                          <Label
-                            htmlFor="agents"
-                            className="flex items-center justify-center cursor-pointer text-center text-sm font-medium rounded-full py-1.5 px-3 transition-all text-slate-900 dark:text-slate-100 peer-data-[state=checked]:bg-[#EBE2F9] peer-data-[state=checked]:text-purple-950 hover:bg-slate-50"
-                          >
-                            Agents
-                          </Label>
-                        </div>
-                      </RadioGroup>
+                      <SearchTypeRadioGroup
+                        idPrefix="hero"
+                        value={searchType}
+                        onValueChange={setSearchType}
+                      />
                     </div>
                     <div className="flex flex-wrap items-center w-full bg-brand rounded-3xl p-2 gap-2">
                       <div className="w-full flex flex-col relative bg-white rounded-2xl">
@@ -374,6 +516,13 @@ const PageWrap = () => {
                                   </div>
                                   <div className="flex flex-col justify-between items-center w-full px-4 md:px-6">
                                     <div className="grid grid-cols-1 w-[100%] gap-6">
+                                      <SearchTypeRadioGroup
+                                        idPrefix="sheet"
+                                        value={searchType}
+                                        onValueChange={setSearchType}
+                                        className="flex items-center bg-white rounded-full p-1 shadow-sm w-full justify-between gap-1 border"
+                                      />
+
                                       <div className="space-y-2">
                                         <Label>Location</Label>
                                         <LocationProjectSearchDropdown
@@ -384,44 +533,100 @@ const PageWrap = () => {
                                         />
                                       </div>
 
-                                      <div className="space-y-2 flex flex-col w-full">
-                                        <ExtraFilterList
-                                          beds={tempBedroom}
-                                          baths={tempBathroom}
-                                          setBeds={setTempBedroom}
-                                          setBaths={setTempBathroom}
-                                        />
-                                      </div>
+                                      {searchType === "agents" ? (
+                                        <>
+                                          <div className="space-y-2">
+                                            <Label>Agent name</Label>
+                                            <Input
+                                              value={tempAgentName}
+                                              onChange={(e) => setTempAgentName(e.target.value)}
+                                              placeholder="Search agents..."
+                                            />
+                                          </div>
 
-                                      <div className="space-y-2 flex flex-col w-full">
-                                        <Label>Price</Label>
-                                        <PriceFilterList
-                                          minPrice={tempMinPrice}
-                                          maxPrice={tempMaxPrice}
-                                          setMinPrice={setTempMinPrice}
-                                          setMaxPrice={setTempMaxPrice}
-                                        />
-                                      </div>
+                                          <div className="space-y-2">
+                                            <Label>Language</Label>
+                                            <DataTableFilterBox
+                                              title="Language"
+                                              options={AVAILABLE_LANGUAGES}
+                                              filterValue={tempLanguage}
+                                              setFilterValue={setTempLanguage}
+                                              className="w-full p-2 flex justify-between items-center"
+                                            />
+                                          </div>
 
-                                      <div className="space-y-2">
-                                        <Label>Category</Label>
-                                        <PropertyCategoryList
-                                          options={allcategories || []}
-                                          setFilterValue={setlistingCategoryId}
-                                          filterValue={listingCategoryId}
-                                          isLoading={isLoadingCategory}
-                                        />
-                                      </div>
+                                          <div className="space-y-2 flex flex-col w-full">
+                                            <Label>Price</Label>
+                                            <PriceFilterList
+                                              minPrice={tempMinPrice}
+                                              maxPrice={tempMaxPrice}
+                                              setMinPrice={setTempMinPrice}
+                                              setMaxPrice={setTempMaxPrice}
+                                            />
+                                          </div>
 
-                                      <div className="space-y-2">
-                                        <Label>Amenities</Label>
-                                        <AmenityFilterList
-                                          options={amenities || []}
-                                          value={tempAmenities}
-                                          onChange={setTempAmenities}
-                                          isLoading={isLoadingAmenities}
-                                        />
-                                      </div>
+                                          <div className="space-y-2">
+                                            <Label>Buying or selling</Label>
+                                            <DataTableFilter
+                                              filterKey="dealType"
+                                              title="Purpose"
+                                              options={dealTypeOptions || []}
+                                              setFilterValue={setTempDealTypeFilter}
+                                              filterValue={tempDealType}
+                                              className="w-full p-2 flex justify-between items-center"
+                                            />
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <div className="space-y-2 flex flex-col w-full">
+                                            <ExtraFilterList
+                                              beds={tempBedroom}
+                                              baths={tempBathroom}
+                                              setBeds={setTempBedroom}
+                                              setBaths={setTempBathroom}
+                                            />
+                                          </div>
+
+                                          <div className="space-y-2 flex flex-col w-full">
+                                            <Label>Price</Label>
+                                            <PriceFilterList
+                                              minPrice={tempMinPrice}
+                                              maxPrice={tempMaxPrice}
+                                              setMinPrice={setTempMinPrice}
+                                              setMaxPrice={setTempMaxPrice}
+                                            />
+                                          </div>
+
+                                          <div className="space-y-2">
+                                            <Label>Category</Label>
+                                            <PropertyCategoryList
+                                              options={allcategories || []}
+                                              setFilterValue={setlistingCategoryId}
+                                              filterValue={listingCategoryId}
+                                              isLoading={isLoadingCategory}
+                                            />
+                                          </div>
+
+                                          <div className="space-y-2">
+                                            <Label>Amenities</Label>
+                                            <AmenityFilterList
+                                              options={amenities || []}
+                                              value={tempAmenities}
+                                              onChange={setTempAmenities}
+                                              isLoading={isLoadingAmenities}
+                                            />
+                                          </div>
+
+                                          <div className="flex items-center justify-between rounded border p-3 bg-zinc-200">
+                                            <Label>Furnished</Label>
+                                            <Switch
+                                              checked={tempFurnished}
+                                              onCheckedChange={setTempFurnished}
+                                            />
+                                          </div>
+                                        </>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -430,38 +635,15 @@ const PageWrap = () => {
                                     type="button"
                                     variant="outline"
                                     className="w-full sm:w-auto"
-                                    onClick={() => {
-                                      setTempMinPrice("");
-                                      setTempMaxPrice("");
-                                      setTempBedroom("");
-                                      setTempBathroom("");
-                                      setTempAmenities([]);
-                                      handleLocationClear();
-                                      resetFilters();
-                                    }}
+                                    onClick={handleClearAllFilters}
                                   >Clear all</Button>
 
                                   <Button
                                     type="button"
                                     variant="brand"
-                                    onClick={() => {
-                                      router.push(
-                                        buildListingSearchUrl({
-                                          locationId: location || undefined,
-                                          projectId: projectId || undefined,
-                                          bedroom: tempBedroom || undefined,
-                                          bathroom: tempBathroom || undefined,
-                                          minPrice: tempMinPrice || undefined,
-                                          maxPrice: tempMaxPrice || undefined,
-                                          category: listingCategoryId || undefined,
-                                          amenities: tempAmenities.length
-                                            ? tempAmenities.join(",")
-                                            : undefined,
-                                        }),
-                                      );
-                                    }}
+                                    onClick={handleSeeProperties}
                                   >
-                                    See Properties
+                                    {searchType === "agents" ? "See Agents" : "See Properties"}
                                   </Button>
                                 </div>
                               </div>
