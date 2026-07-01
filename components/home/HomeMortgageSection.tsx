@@ -8,8 +8,6 @@ const placeholderCards = [
   "/assets/images/hero/1.jpg",
   "/assets/images/hero/2.webp",
   "/assets/images/hero/2.webp",
-  "/assets/images/hero/2.webp",
-  "/assets/images/hero/2.webp",
 ];
 
 const PlaceholderPropertyCard = ({ imageSrc }: { imageSrc: string }) => (

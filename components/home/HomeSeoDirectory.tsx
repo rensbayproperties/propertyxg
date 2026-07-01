@@ -16,7 +16,7 @@ const HomeSeoDirectory = () => {
   return (
     <Section className="border-y border-gray-200 py-12 md:py-16">
       <Container className="space-y-10">
-        <p className="text-center text-sm md:text-base text-gray-700 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-center text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
           Search over thousands of listings including{" "}
           <Link
             href={propertyTypeLinks.apartments.href}
