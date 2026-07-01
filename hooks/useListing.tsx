@@ -10,9 +10,19 @@ import { ListingsColumns } from "@/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { propertyContactSchema } from "@/lib/schemas";
+import { propertyContactSchema, aiSearchSchema } from "@/lib/schemas";
+import {
+  CATEGORY_DELIMITER,
+  countSelectedFilters,
+} from "@/lib/listingFilters";
+import {
+  extractListingFiltersFromAiParse,
+  type SearchType,
+} from "@/lib/buildListingSearchUrl";
+import useRecentSearches from "./useRecentSearches";
 
 type FormData = z.infer<typeof propertyContactSchema>;
+type PromptFormData = z.infer<typeof aiSearchSchema>;
 
 type ListingDefaults = {
   dealType?: string
@@ -42,6 +52,7 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     null,
   );
   const queryClient = useQueryClient();
+  const { recentSearches, addRecentSearch, clearRecentSearches } = useRecentSearches();
 
   const toggleView = () => {
     setViewMode((prevMode) => (prevMode === "table" ? "card" : "table"));
@@ -129,6 +140,11 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     searchParams.status.withOptions({ shallow: false }).withDefault(""),
   );
 
+  const [promptQuery, setPromptQuery] = useQueryState(
+    "search",
+    searchParams.search.withOptions({ shallow: false }).withDefault(""),
+  );
+
   const [currentPage, setCurrentPage] = useQueryState(
     "page",
     parseAsInteger.withOptions({ shallow: false }).withDefault(1),
@@ -154,8 +170,87 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     setProject(null);
     setLanguage(null);
     setFurnished(null);
-    setCurrentPage(null)
-  }, [setSearchQuery, setlistingCategoryId]);
+    setPromptQuery(null);
+    setCurrentPage(null);
+  }, [
+    setSearchQuery,
+    setlistingCategoryId,
+    setLocation,
+    setListType,
+    setMinPrice,
+    setMaxPrice,
+    setBedroom,
+    setBathroom,
+    setAmenities,
+    setAssignedTo,
+    setProject,
+    setLanguage,
+    setFurnished,
+    setPromptQuery,
+    setCurrentPage,
+  ]);
+
+  const selectedCategoryIds = useMemo(
+    () =>
+      listingCategoryId
+        ? listingCategoryId.split(CATEGORY_DELIMITER).filter(Boolean)
+        : [],
+    [listingCategoryId],
+  );
+
+  const selectedAmenityIds = useMemo(
+    () => (amenities ? amenities.split(",").filter(Boolean) : []),
+    [amenities],
+  );
+
+  const isFurnished = furnished === "true";
+
+  const setSelectedAmenityIds = useCallback(
+    (ids: string[]) => {
+      void setAmenities(ids.length ? ids.join(",") : null);
+    },
+    [setAmenities],
+  );
+
+  const setIsFurnished = useCallback(
+    (checked: boolean) => {
+      void setFurnished(checked ? "true" : null);
+    },
+    [setFurnished],
+  );
+
+  const setDealTypeFromSearchType = useCallback(
+    (searchType: "sale" | "rent") => {
+      void setListType(searchType === "rent" ? "RENT" : "SALE");
+    },
+    [setListType],
+  );
+
+  const activeFilterCount = useMemo(
+    () =>
+      countSelectedFilters({
+        location,
+        projectId,
+        bedroom,
+        bathroom,
+        minPrice,
+        maxPrice,
+        categoryIds: selectedCategoryIds,
+        amenityIds: selectedAmenityIds,
+        furnished: isFurnished,
+      }),
+    [
+      location,
+      projectId,
+      bedroom,
+      bathroom,
+      minPrice,
+      maxPrice,
+      selectedCategoryIds,
+      selectedAmenityIds,
+      isFurnished,
+    ],
+  );
 
   const dealTypeOptions = [
     { value: "RENT", label: "Rent" },
@@ -164,11 +259,10 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
 
   const isAnyFilterActive = useMemo(() => {
     return (
-      !!currentPage ||
       !!projectId ||
       !!language ||
       !!searchQuery ||
-      !!listingCategoryId ||
+      !!promptQuery ||
       !!listingCategoryId ||
       !!location ||
       !!listType ||
@@ -181,11 +275,10 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
       !!furnished
     );
   }, [
-    currentPage,
     projectId,
     language,
     searchQuery,
-    listingCategoryId,
+    promptQuery,
     listingCategoryId,
     location,
     listType,
@@ -516,6 +609,114 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     }
   }, [openShare]);
 
+  const promptForm = useForm<PromptFormData>({
+    resolver: zodResolver(aiSearchSchema),
+    defaultValues: {
+      query: "",
+      location: "",
+      project: "",
+    },
+  });
+
+  useEffect(() => {
+    promptForm.setValue("query", promptQuery || "");
+  }, [promptQuery, promptForm]);
+
+  useEffect(() => {
+    promptForm.setValue("location", location || "");
+    promptForm.setValue("project", projectId || "");
+  }, [location, projectId, promptForm]);
+
+  const applyParsedFilters = useCallback(
+    async (
+      filters: ReturnType<typeof extractListingFiltersFromAiParse>,
+    ) => {
+      const updates: Promise<unknown>[] = [
+        setListType(filters.dealType),
+        setBedroom(filters.bedroom ?? null),
+        setBathroom(filters.bathroom ?? null),
+        setMinPrice(filters.minPrice ?? null),
+        setMaxPrice(filters.maxPrice ?? null),
+        setlistingCategoryId(filters.category ?? null),
+        setAmenities(filters.amenities ?? null),
+        setFurnished(filters.furnished ?? null),
+        setCurrentPage(1),
+      ];
+
+      if (filters.projectId) {
+        updates.push(setProject(filters.projectId), setLocation(null));
+      } else {
+        updates.push(setProject(null));
+        updates.push(setLocation(filters.locationId ?? null));
+      }
+
+      await Promise.all(updates);
+    },
+    [
+      setListType,
+      setBedroom,
+      setBathroom,
+      setMinPrice,
+      setMaxPrice,
+      setlistingCategoryId,
+      setAmenities,
+      setFurnished,
+      setCurrentPage,
+      setProject,
+      setLocation,
+    ],
+  );
+
+  const { mutateAsync: submitAiParse, isPending: isPendingAiSearch } =
+    useMutation({
+      mutationFn: (credentials: PromptFormData) =>
+        axiosAuth.post("/ai/crm-parse", credentials),
+      onSuccess: async (res, req) => {
+        if (res?.data?.success && res?.data?.data) {
+          const uiSearchType: SearchType =
+            listType === "RENT" ? "rent" : "sale";
+          const filters = extractListingFiltersFromAiParse(
+            res.data.data,
+            req,
+            {
+              location,
+              projectId,
+              bedroom,
+              bathroom,
+              minPrice,
+              maxPrice,
+              listingCategoryId,
+              amenities,
+            },
+            uiSearchType,
+          );
+          await applyParsedFilters(filters);
+          await setPromptQuery(req.query);
+        } else {
+          toast.error("Error", {
+            description: res?.data?.message || "An error occured",
+          });
+        }
+      },
+    });
+
+  const onPromptSubmit = async (values: PromptFormData) => {
+    try {
+      if (values.query.trim()) {
+        addRecentSearch(values.query);
+      }
+      await submitAiParse({
+        query: values.query,
+        location: values.location || location || undefined,
+        project: values.project || projectId || undefined,
+      });
+    } catch {
+      toast("Failed", {
+        description: "Something went wrong. Please try again later",
+      });
+    }
+  };
+
   const availableLanguages = [
     { value: "arabic", label: "Arabic" },
     { value: "english", label: "English" },
@@ -537,6 +738,13 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     exportListings,
     resetFilters,
     isAnyFilterActive,
+    activeFilterCount,
+    selectedCategoryIds,
+    selectedAmenityIds,
+    isFurnished,
+    setSelectedAmenityIds,
+    setIsFurnished,
+    setDealTypeFromSearchType,
     listingCategoryId,
     setlistingCategoryId,
     location,
@@ -611,6 +819,13 @@ const useListing = (opt: string = "", defaults: ListingDefaults = {}) => {
     isLoadingCategory,
     projectData,
     gettingprojectData,
+    promptForm,
+    onPromptSubmit,
+    isPendingAiSearch,
+    promptQuery,
+    setPromptQuery,
+    recentSearches,
+    clearRecentSearches,
   };
 };
 

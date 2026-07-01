@@ -1,6 +1,6 @@
 export type SearchType = "sale" | "rent" | "agents";
 
-type ListingSearchFilters = {
+export type ListingSearchFilters = {
   locationId?: string;
   projectId?: string;
   bedroom?: string;
@@ -205,6 +205,30 @@ export function buildUrlFromAiParseResponse(
     amenities: pickAmenities(data, fallbacks.amenities),
     furnished: pickFurnished(data),
   });
+}
+
+export function extractListingFiltersFromAiParse(
+  data: AiParseResponseData,
+  req: AiParseFormData,
+  fallbacks: FilterFallbacks,
+  uiSearchType: SearchType = "sale",
+): ListingSearchFilters & { dealType: "SALE" | "RENT" } {
+  const searchType = resolveSearchType(data, uiSearchType);
+  const locationId = pickLocationId(data, req, fallbacks.location);
+  const projectId = pickProjectId(data, req, fallbacks.projectId);
+
+  return {
+    dealType: searchType === "rent" ? "RENT" : "SALE",
+    locationId,
+    projectId,
+    bedroom: pickStringField(data, "bedroom", fallbacks.bedroom),
+    bathroom: pickStringField(data, "bathroom", fallbacks.bathroom),
+    minPrice: pickPriceField(data, "minPrice", fallbacks.minPrice),
+    maxPrice: pickPriceField(data, "maxPrice", fallbacks.maxPrice),
+    category: pickCategory(data, fallbacks.listingCategoryId),
+    amenities: pickAmenities(data, fallbacks.amenities),
+    furnished: pickFurnished(data),
+  };
 }
 
 export function buildListingSearchUrl(

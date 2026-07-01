@@ -1,12 +1,13 @@
 "use client";
 import React, { useCallback, useMemo, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Container from "@/components/Container";
-import { Icons } from "@/components/icons"
-import Section from "@/components/Section";
+import HomeServiceCards from "@/components/home/HomeServiceCards";
+import HomeRecommendations from "@/components/home/HomeRecommendations";
+import HomeMortgageSection from "@/components/home/HomeMortgageSection";
+import HomeSeoDirectory from "@/components/home/HomeSeoDirectory";
 import LocationProjectSearchDropdown from "@/components/LocationProjectSearchDropdown";
 import PropertyCategoryList from "@/components/PropertyCategoryList";
 import ExtraFilterList from "@/components/search/ExtraFilterList";
@@ -16,7 +17,6 @@ import useListingSearch from "@/hooks/useListingSearch";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AnimatedPlaceholderTextarea } from "@/components/AnimatedPlaceholderTextarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -25,78 +25,13 @@ import { DataTableFilter } from "@/components/ui/table/data-table-filter";
 import useCategories from "@/hooks/useCategories";
 import useAmenities from "@/hooks/useAmenities";
 import { buildListingSearchUrl, type SearchType } from "@/lib/buildListingSearchUrl";
-
-type Feature = {
-  icon?: keyof typeof Icons;
-  title: string;
-  items: string[];
-}
-
-function countSelectedFilters({
-  location,
-  projectId,
-  bedroom,
-  bathroom,
-  minPrice,
-  maxPrice,
-  categoryIds,
-  amenityIds,
-  furnished,
-}: {
-  location: string;
-  projectId: string | null;
-  bedroom: string;
-  bathroom: string;
-  minPrice: string;
-  maxPrice: string;
-  categoryIds: string[];
-  amenityIds: string[];
-  furnished: boolean;
-}) {
-  let count = 0;
-  if (location || projectId) count++;
-  if (bedroom) count++;
-  if (bathroom) count++;
-  if (minPrice) count++;
-  if (maxPrice) count++;
-  count += categoryIds.length;
-  count += amenityIds.length;
-  if (furnished) count++;
-  return count;
-}
-
-function countAgentFilters({
-  location,
-  projectId,
-  agentName,
-  language,
-  minPrice,
-  maxPrice,
-  dealType,
-}: {
-  location: string;
-  projectId: string | null;
-  agentName: string;
-  language: string;
-  minPrice: string;
-  maxPrice: string;
-  dealType: string;
-}) {
-  let count = 0;
-  if (location || projectId) count++;
-  if (agentName) count++;
-  if (language) count++;
-  if (minPrice) count++;
-  if (maxPrice) count++;
-  if (dealType) count++;
-  return count;
-}
-
-const SEARCH_TYPE_OPTIONS = [
-  { value: "sale", label: "For sale" },
-  { value: "rent", label: "For rent" },
-  { value: "agents", label: "Agents" },
-] as const;
+import RecentSearchDropdown from "@/components/search/RecentSearchDropdown";
+import {
+  countAgentFilters,
+  countSelectedFilters,
+  FilterCountBadge,
+  SearchTypeRadioGroup,
+} from "@/lib/listingFilters";
 
 const AVAILABLE_LANGUAGES = [
   { value: "arabic", label: "Arabic" },
@@ -110,54 +45,6 @@ const AVAILABLE_LANGUAGES = [
   { value: "urdu", label: "Urdu" },
   { value: "others", label: "Others" },
 ];
-
-function SearchTypeRadioGroup({
-  idPrefix,
-  value,
-  onValueChange,
-  className,
-}: {
-  idPrefix: string;
-  value: SearchType;
-  onValueChange: (value: SearchType) => void;
-  className?: string;
-}) {
-  return (
-    <RadioGroup
-      value={value}
-      onValueChange={(v) => onValueChange(v as SearchType)}
-      className={
-        className ??
-        "flex items-center bg-white rounded-full p-1 shadow-sm max-w-sm w-full justify-between gap-1"
-      }
-    >
-      {SEARCH_TYPE_OPTIONS.map((option) => (
-        <div key={option.value} className="flex-1">
-          <RadioGroupItem
-            value={option.value}
-            id={`${idPrefix}-${option.value}`}
-            className="peer sr-only"
-          />
-          <Label
-            htmlFor={`${idPrefix}-${option.value}`}
-            className="flex items-center justify-center cursor-pointer text-center text-sm font-medium rounded-full py-1.5 px-3 transition-all text-slate-900 dark:text-slate-100 peer-data-[state=checked]:bg-[#EBE2F9] peer-data-[state=checked]:text-purple-950 hover:bg-slate-50"
-          >
-            {option.label}
-          </Label>
-        </div>
-      ))}
-    </RadioGroup>
-  );
-}
-
-const FilterCountBadge = ({ count }: { count: number }) => {
-  if (count <= 0) return null;
-  return (
-    <span className="text-base bg-brand text-white min-w-6 h-6 px-1 rounded-full flex items-center justify-center leading-none font-semibold">
-      {count}
-    </span>
-  );
-};
 
 const PageWrap = () => {
   const router = useRouter();
@@ -191,9 +78,12 @@ const PageWrap = () => {
     selectedAmenityIds,
     resetFilters,
     dealTypeOptions,
+    recentSearches,
+    clearRecentSearches,
   } = useListingSearch()
 
   const [searchType, setSearchType] = useState<SearchType>("sale");
+  const [recentOpen, setRecentOpen] = useState(false);
   const [tempMinPrice, setTempMinPrice] = useState(minPrice);
   const [tempMaxPrice, setTempMaxPrice] = useState(maxPrice);
   const [tempBedroom, setTempBedroom] = useState(bedroom);
@@ -364,30 +254,6 @@ const PageWrap = () => {
     }
     : undefined;
 
-  const features = [
-    {
-      title: "Find anything with AI",
-      description: "Hide basement flats, discover renovation projects and surface homes that",
-      url: "",
-      cta: "Get started",
-      image: "/assets/images/hero/feat-1.png",
-    },
-    {
-      title: "Do more with Xg WhatsApp AI",
-      description: "Discover more on the Go. Explore homes across different neighbourhoods",
-      url: "",
-      cta: "Get started",
-      image: "/assets/images/hero/feat-2.png",
-    },
-    {
-      title: "Xg Agents",
-      description: "Find trusted agents awarded for their excellent performance",
-      url: "",
-      cta: "Get started",
-      image: "/assets/images/hero/feat-3.png",
-    },
-  ]
-
   if (isPending) {
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/50 backdrop-blur-sm">
@@ -444,25 +310,33 @@ const PageWrap = () => {
                             render={({ field }) => (
                               <FormItem>
                                 <FormControl>
-                                  <AnimatedPlaceholderTextarea
-                                    {...field}
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter" && !e.shiftKey) {
-                                        e.preventDefault();
-                                        if (!isPending) {
-                                          e.currentTarget.form?.requestSubmit();
+                                  <RecentSearchDropdown
+                                    recentSearches={recentSearches}
+                                    open={recentOpen}
+                                    onOpenChange={setRecentOpen}
+                                    onSelect={(query) => field.onChange(query)}
+                                    onClear={clearRecentSearches}
+                                  >
+                                    <AnimatedPlaceholderTextarea
+                                      {...field}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !e.shiftKey) {
+                                          e.preventDefault();
+                                          if (!isPending) {
+                                            e.currentTarget.form?.requestSubmit();
+                                          }
                                         }
-                                      }
-                                    }}
-                                    placeholders={[
-                                      "Furnished 1 bedroom apartment around Business Bay",
-                                      "Apartments with a gym in Palm Jumeriah",
-                                      "2 bedroom near Burj Khalifah under 2k",
-                                      "Studio apartment for rent in Downtown Dubai",
-                                      "Pet friendly homes in Damac Hills",
-                                    ]}
-                                    className="p-3 text-lg border-none !ring-transparent focus:!ring-transparent rounded-2xl"
-                                  />
+                                      }}
+                                      placeholders={[
+                                        "Furnished 1 bedroom apartment around Business Bay",
+                                        "Apartments with a gym in Palm Jumeriah",
+                                        "2 bedroom near Burj Khalifah under 2k",
+                                        "Studio apartment for rent in Downtown Dubai",
+                                        "Pet friendly homes in Damac Hills",
+                                      ]}
+                                      className="p-3 text-lg border-none !ring-transparent focus:!ring-transparent rounded-2xl"
+                                    />
+                                  </RecentSearchDropdown>
                                 </FormControl>
                                 {/* <FormMessage /> */}
                               </FormItem>
@@ -659,24 +533,11 @@ const PageWrap = () => {
           </div>
         </div>
       </div>
-      <Section>
-        <Container className="space-y-4 md:space-y-8">
-          <div className="page-heading-sm text-center !font-medium">Explore, save, and share homes with AI-powered search</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {
-              features.map((feature: any, i: number) => {
-                return <div key={`__${i}`} className="bg-gradient-to-bs bg-stone-100 from-brand/10s to-gray-50s border rounded-2xl flex flex-col gap-2 p-4 md:p-4 items-center text-center">
-                  <div><Image src={feature.image} alt={""} width={300} height={200} /></div>
-                  <div className="font-semibold text-lg max-w-xs">{feature.title}</div>
-                  <div className="text-sm max-w-xs pb-2">{feature.description}</div>
-                </div>
-              })
-            }
-          </div>
-        </Container>
-      </Section>
-      <div className="h-screen"></div>
-      <div className="bg-gradient-to-b from-white to-brand/20 py-20 md:py-26">
+      <HomeServiceCards />
+      <HomeRecommendations />
+      <HomeMortgageSection />
+      <HomeSeoDirectory />
+      {/* <div className="bg-gradient-to-b from-white to-brand/20 py-20 md:py-26">
         <Container>
           <div className="flex flex-col gap-y-2">
             <div className="text-3xl md:text-4xl text-center leading-[1.2] mx-auto font-bold">
@@ -690,7 +551,7 @@ const PageWrap = () => {
             </div>
           </div>
         </Container>
-      </div>
+      </div> */}
     </div>
   );
 };

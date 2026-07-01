@@ -2,11 +2,10 @@
 import Container from "@/components/Container";
 import Image from "next/image";
 import { useState } from "react";
-import { cn, formatMoney, formatToReadableDate, getTimeAgo } from "@/lib/utils";
+import { cn, formatMoney, getTimeAgo } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { BedDouble, Bath, Maximize, Heart, Phone } from "lucide-react";
+import { BedDouble, Bath, Maximize, Phone } from "lucide-react";
 import useListing from "@/hooks/useListing";
-import usePropertyContactReview from "@/hooks/usePropertyContactReview";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +16,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,17 +28,25 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getFirstLetter } from "@/constant/data";
 import LocationProjectSearchDropdown from "@/components/LocationProjectSearchDropdown";
-import { DataTableFilterBox } from "@/components/ui/table/data-table-filter-box";
-import { Bell } from "lucide-react";
 import usePublicAlert from "@/hooks/usePublicAlert";
-import { DataTableResetFilter } from "@/components/ui/table/data-table-reset-filter";
-import PropertyCategoryDropdown from "@/components/PropertyCategoryFilter";
+import PropertyCategoryList from "@/components/PropertyCategoryList";
+import ExtraFilterList from "@/components/search/ExtraFilterList";
+import PriceFilterList from "@/components/search/PriceFilterList";
+import AmenityFilterList from "@/components/search/AmenityFilterList";
 import ListingProjectShowcase from "@/components/ListingProjectShowcase";
-import { DataTableFilter } from "@/components/ui/table/data-table-filter";
-import ExtraFilter from "@/components/search/ExtraFilter";
-import PriceFilter from "@/components/search/PriceFilter";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import BreadCrumbs from "@/components/BreadCrumbs";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import useCategories from "@/hooks/useCategories";
+import useAmenities from "@/hooks/useAmenities";
+import {
+  FilterCountBadge,
+  LISTING_SEARCH_TYPE_OPTIONS,
+  SearchTypeRadioGroup,
+} from "@/lib/listingFilters";
+import type { SearchType } from "@/lib/buildListingSearchUrl";
+import RecentSearchDropdown from "@/components/search/RecentSearchDropdown";
 
 interface PageProps {
   searchParams: { dealType?: string; top_category?: string };
@@ -48,16 +54,11 @@ interface PageProps {
 
 const PageWrap = ({ searchParams }: PageProps) => {
   const {
-    availableLanguages,
-    language,
-    setLanguage,
     listings,
     gettingListings,
     isDialogOpen,
     setIsDialogOpen,
     setSelectedListingId,
-    selectedListingId,
-    contactAgent,
     form,
     isPendingPropertyContact,
     onSubmit,
@@ -67,10 +68,8 @@ const PageWrap = ({ searchParams }: PageProps) => {
     setLocation,
     projectId,
     setProject,
-    pType,
     setlistingCategoryId,
     listingCategoryId,
-    gettingCategory,
     setMaxPrice,
     setMinPrice,
     maxPrice,
@@ -79,20 +78,28 @@ const PageWrap = ({ searchParams }: PageProps) => {
     setBathroom,
     bedroom,
     bathroom,
-    setListType,
     listType,
-    dealTypeOptions,
+    setDealTypeFromSearchType,
     listingsRecommendations,
-    gettingRecommendations,
     resetFilters,
-    isAnyFilterActive,
-    allcategories,
-    isLoadingCategory,
-    projectData,
-    gettingprojectData,
+    activeFilterCount,
     setCurrentPage,
     currentPage,
+    selectedAmenityIds,
+    setSelectedAmenityIds,
+    isFurnished,
+    setIsFurnished,
+    projectData,
+    gettingprojectData,
+    promptForm,
+    onPromptSubmit,
+    isPendingAiSearch,
+    recentSearches,
+    clearRecentSearches,
   } = useListing("", { dealType: searchParams.dealType || "" });
+
+  const { allcategories, isLoadingCategory } = useCategories();
+  const { amenities, isLoadingAmenities } = useAmenities();
 
   const { formAlert, onSubmitAlert, isPending } = usePublicAlert();
 
@@ -102,8 +109,9 @@ const PageWrap = ({ searchParams }: PageProps) => {
 
   const [open, setOpen] = useState(false);
   const [openContact, setOpenContact] = useState(false);
-  const [filters, setFilters] = useState(false);
-  const [LinkLocation, setLinkLocation] = useState("");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [recentOpen, setRecentOpen] = useState(false);
+  const [linkLocationTitle, setLinkLocationTitle] = useState("");
 
   const [pageGroup, setPageGroup] = useState(0);
   const pagesPerGroup = 10;
@@ -150,7 +158,7 @@ const PageWrap = ({ searchParams }: PageProps) => {
       links:
         listingsRecommendations?.suggestedBedrooms?.map((bedroom: string) => ({
           label: `${bedroom} Bedroom ${listingsRecommendations?.suggestedCategories?.[0] || "Properties"
-            } in ${LinkLocation || "Dubai"}`,
+            } in ${linkLocationTitle || "Dubai"}`,
           href: location
             ? `/search?bedroom=${bedroom}&locationId=${location}`
             : `/search?bedroom=${bedroom}`,
@@ -162,7 +170,7 @@ const PageWrap = ({ searchParams }: PageProps) => {
       links:
         listingsRecommendations?.suggestedBathrooms?.map(
           (bathroom: string) => ({
-            label: `${bathroom} Bathroom Properties in ${LinkLocation || "Dubai"
+            label: `${bathroom} Bathroom Properties in ${linkLocationTitle || "Dubai"
               }`,
             href: location
               ? `/search?bathroom=${bathroom}?locationId=${location}`
@@ -178,32 +186,71 @@ const PageWrap = ({ searchParams }: PageProps) => {
     (info: any) => info.id === popupInfo,
   );
 
-  const [tempMinPrice, setTempMinPrice] = useState(minPrice);
-  const [tempMaxPrice, setTempMaxPrice] = useState(maxPrice);
+  const searchType: SearchType = listType === "RENT" ? "rent" : "sale";
 
-  const [tempBedroom, setTempBedroom] = useState(bedroom);
-  const [tempBathroom, setTempBathroom] = useState(bathroom);
+  const selectedLocationDefault = linkLocationTitle
+    ? {
+      id: projectId || location,
+      title: linkLocationTitle,
+      type: projectId ? ("project" as const) : ("location" as const),
+    }
+    : undefined;
 
-  const [tempLanguage, setTempLanguage] = useState(language);
+  const handleLocationSelect = (selectedItem: {
+    type: "location" | "project";
+    id: string;
+    title: string;
+  }) => {
+    if (selectedItem.type === "project") {
+      promptForm.setValue("project", String(selectedItem.id));
+      promptForm.setValue("location", "");
+      void setProject(String(selectedItem.id));
+      void setLocation(null);
+    } else {
+      promptForm.setValue("location", String(selectedItem.id));
+      promptForm.setValue("project", "");
+      void setLocation(String(selectedItem.id));
+      void setProject(null);
+    }
+    setLinkLocationTitle(selectedItem.title);
+  };
 
-  if (gettingListings)
+  const handleLocationClear = () => {
+    promptForm.setValue("location", "");
+    promptForm.setValue("project", "");
+    void setLocation(null);
+    void setProject(null);
+    setLinkLocationTitle("");
+  };
+
+  const handleClearAllFilters = () => {
+    handleLocationClear();
+    resetFilters();
+  };
+
+  const handleSeeProperties = async () => {
+    await setCurrentPage(1);
+    setSheetOpen(false);
+  };
+
+  if (gettingListings || isPendingAiSearch)
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
         <div className="flex flex-col items-center gap-4">
-          {/* Spinner */}
           <div className="relative flex items-center justify-center">
             <div className="h-12 w-12 rounded-full border-4 border-purple-200"></div>
 
             <div className="absolute h-12 w-12 rounded-full border-4 border-t-purple-600 border-r-purple-500 border-b-transparent border-l-transparent animate-spin"></div>
           </div>
 
-          {/* Brand Name */}
           <div className="text-center">
             <h1 className="text-2xl font-bold text-purple-700 tracking-wide">
               PropertyXg
             </h1>
             <p className="text-sm text-purple-400 mt-1 animate-pulse">
-              Loading amazing listings...
+              {isPendingAiSearch
+                ? "Xg AI is thinking..."
+                : "Loading amazing listings..."}
             </p>
           </div>
         </div>
@@ -223,142 +270,160 @@ const PageWrap = ({ searchParams }: PageProps) => {
       <section className="sticky top-0 border-b shadow-[0_3px_5px_-3px_rgba(0,0,0,0.1)] z-[20] py-2 space-y-2 bg-white">
         <Container className="space-y-2">
           <div className="flex flex-wrap items-center gap-2 w-full">
-            {/* <DataTableFilter
-              filterKey="listType"
-              title="Purpose"
-              options={dealTypeOptions || []}
-              setFilterValue={setListType}
-              filterValue={listType}
-            /> */}
+            <Form {...promptForm}>
+              <form
+                onSubmit={promptForm.handleSubmit(onPromptSubmit)}
+                className="flex-1 min-w-[200px]"
+              >
+                <FormField
+                  control={promptForm.control}
+                  name="query"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RecentSearchDropdown
+                          recentSearches={recentSearches}
+                          open={recentOpen}
+                          onOpenChange={setRecentOpen}
+                          onSelect={(query) => field.onChange(query)}
+                          onClear={clearRecentSearches}
+                        >
+                          <Input
+                            {...field}
+                            placeholder="Furnished 1 bedroom apartment around Business Bay"
+                            className="h-10"
+                            disabled={isPendingAiSearch}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !isPendingAiSearch) {
+                                e.preventDefault();
+                                e.currentTarget.form?.requestSubmit();
+                              }
+                            }}
+                          />
+                        </RecentSearchDropdown>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
 
             <div className="w-full max-w-xs">
               <LocationProjectSearchDropdown
-                onLocationSelect={(selectedItem) => {
-                  if (selectedItem.type === "project") {
-                    setProject(String(selectedItem.id));
-                    setLocation(null);
-                    setLinkLocation(String(selectedItem.title));
-                  } else {
-                    setLocation(String(selectedItem.id));
-                    setProject(null);
-                    setLinkLocation(selectedItem.title);
-                  }
-                }}
+                key={`${location}-${projectId}`}
+                defaultValue={selectedLocationDefault}
+                inputClassName="h-10"
+                onLocationSelect={handleLocationSelect}
+                onClear={handleLocationClear}
               />
             </div>
 
-            <PriceFilter
-              minPrice={tempMinPrice}
-              maxPrice={tempMaxPrice}
-              setMinPrice={setTempMinPrice}
-              setMaxPrice={setTempMaxPrice}
-            />
-            <ExtraFilter
-              beds={tempBedroom}
-              baths={tempBathroom}
-              setBeds={setTempBedroom}
-              setBaths={setTempBathroom}
-            />
-            <PropertyCategoryDropdown
-              options={allcategories || []}
-              setFilterValue={setlistingCategoryId}
-              filterValue={listingCategoryId}
-              isLoading={isLoadingCategory}
-            />
-
-            <Sheet>
-              <SheetTrigger>
-                <Button variant={"outline"}>
-                  <i className="bi-filter"></i> All filters
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant={"outline"} className="gap-2">
+                  <i className="bi-filter"></i> All Filters
+                  <FilterCountBadge count={activeFilterCount} />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="z-[99999]">
-                <div className="relative w-full flex flex-col h-full space-y-5">
-                  <div className="flex flex-col items-start justify-between shrink-0">
-                    <h2 className="text-lg lg:text-lg font-bold text-gray-900">
-                      Filters Properties
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Refine your property search with advanced filters
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col justify-between items-center w-full h-full">
-                    <div className="grid grid-cols-1 w-[100%] gap-6">
-                      {/* <div className="rounded-3xl border bg-white shadow-sm overflow-visible relative z-10 flex p-4 justify-between items-center">
-                          <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
-                            Price (AED)
-                          </h3>
-
-                          <PriceFilter
-                            minPrice={tempMinPrice}
-                            maxPrice={tempMaxPrice}
-                            setMinPrice={setTempMinPrice}
-                            setMaxPrice={setTempMaxPrice}
-                            className="w-[50%] p-2 flex justify-between items-center"
-                          />
-                        </div> */}
-
-                      {/* <div className="rounded-3xl border bg-white p-4 shadow-sm overflow-visible relative z-10 flex justify-between items-center">
-                          <h3 className="text-xs sm:text-sm font-semibold text-gray-900">
-                            Bed & Bath
-                          </h3>
-
-                          <ExtraFilter
-                            beds={tempBedroom}
-                            baths={tempBathroom}
-                            setBeds={setTempBedroom}
-                            setBaths={setTempBathroom}
-                            className="w-[60%] p-2 flex justify-between items-center"
-                          />
-                        </div> */}
-
-                      <DataTableFilterBox
-                        title="Language"
-                        options={availableLanguages || []}
-                        filterValue={tempLanguage}
-                        setFilterValue={setTempLanguage}
-                        className="w-full p-2 flex justify-between items-center"
-                      />
+              <SheetContent className="z-[99999] px-0" side={"left"}>
+                <div className="relative w-full flex flex-col h-full space-y-5 overflow-y-scroll justify-between gap-6">
+                  <div className="space-y-6">
+                    <div className="sticky top-0 left-0 grid grid-cols-2 gap-2 mt-auto w-full bg-background/90 backdrop-blur px-4 py-2 md:px-6 z-[999999] border-b">
+                      <div className="flex flex-col items-start justify-between shrink-0">
+                        <h2 className="text-lg lg:text-2xl font-bold flex gap-2 items-center">
+                          All Filters
+                          <FilterCountBadge count={activeFilterCount} />
+                        </h2>
+                      </div>
                     </div>
-
-                    <div className="flex flex-col sm:flex-row items-center gap-4 pt-5">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full sm:w-auto h-12 px-8 rounded-2xl text-base"
-                      >
-                        <DataTableResetFilter
-                          isFilterActive={isAnyFilterActive}
-                          onReset={resetFilters}
+                    <div className="flex flex-col justify-between items-center w-full px-4 md:px-6">
+                      <div className="grid grid-cols-1 w-[100%] gap-6">
+                        <SearchTypeRadioGroup
+                          idPrefix="search-sheet"
+                          value={searchType}
+                          onValueChange={(value) =>
+                            setDealTypeFromSearchType(value as "sale" | "rent")
+                          }
+                          options={LISTING_SEARCH_TYPE_OPTIONS}
+                          className="flex items-center bg-white rounded-full p-1 shadow-sm w-full justify-between gap-1 border"
                         />
-                      </Button>
 
-                      <Button
-                        type="button"
-                        className="w-full flex-1 h-12 text-base font-semibold bg-brand hover:bg-brand text-white"
-                        onClick={async () => {
-                          const updates: Promise<any>[] = [];
+                        <div className="space-y-2">
+                          <Label>Location</Label>
+                          <LocationProjectSearchDropdown
+                            key={`sheet-${location}-${projectId}`}
+                            defaultValue={selectedLocationDefault}
+                            onLocationSelect={handleLocationSelect}
+                            onClear={handleLocationClear}
+                          />
+                        </div>
 
-                          if (tempMinPrice)
-                            updates.push(setMinPrice(tempMinPrice));
-                          if (tempMaxPrice)
-                            updates.push(setMaxPrice(tempMaxPrice));
-                          if (tempBedroom)
-                            updates.push(setBedroom(tempBedroom));
-                          if (tempBathroom)
-                            updates.push(setBathroom(tempBathroom));
-                          if (tempLanguage)
-                            updates.push(setLanguage(tempLanguage));
+                        <div className="space-y-2 flex flex-col w-full">
+                          <ExtraFilterList
+                            beds={bedroom}
+                            baths={bathroom}
+                            setBeds={setBedroom}
+                            setBaths={setBathroom}
+                          />
+                        </div>
 
-                          await Promise.all(updates);
+                        <div className="space-y-2 flex flex-col w-full">
+                          <Label>Price</Label>
+                          <PriceFilterList
+                            minPrice={minPrice}
+                            maxPrice={maxPrice}
+                            setMinPrice={setMinPrice}
+                            setMaxPrice={setMaxPrice}
+                          />
+                        </div>
 
-                          setFilters(false);
-                        }}
-                      >
-                        See Properties
-                      </Button>
+                        <div className="space-y-2">
+                          <Label>Category</Label>
+                          <PropertyCategoryList
+                            options={allcategories || []}
+                            setFilterValue={setlistingCategoryId}
+                            filterValue={listingCategoryId}
+                            isLoading={isLoadingCategory}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Amenities</Label>
+                          <AmenityFilterList
+                            options={amenities || []}
+                            value={selectedAmenityIds}
+                            onChange={setSelectedAmenityIds}
+                            isLoading={isLoadingAmenities}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between rounded border p-3 bg-zinc-200">
+                          <Label>Furnished</Label>
+                          <Switch
+                            checked={isFurnished}
+                            onCheckedChange={setIsFurnished}
+                          />
+                        </div>
+                      </div>
                     </div>
+                  </div>
+                  <div className="sticky bottom-0 left-0 grid grid-cols-2 gap-2 w-full bg-background/90 backdrop-blur border-t p-4 items-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                      onClick={handleClearAllFilters}
+                    >
+                      Clear all
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="brand"
+                      onClick={handleSeeProperties}
+                    >
+                      See Properties
+                    </Button>
                   </div>
                 </div>
               </SheetContent>
@@ -367,12 +432,6 @@ const PageWrap = ({ searchParams }: PageProps) => {
             <Button role="button" variant={"light"} className="p-0 rounded-full w-10 h-10 border border-zinc-500 shadow" onClick={() => setOpen(true)}><i className="bi-bell text-lg"></i></Button>
             <Button variant={"brand"}>Save search</Button>
           </div>
-          {/* <div>
-            <DataTableResetFilter
-              isFilterActive={isAnyFilterActive}
-              onReset={resetFilters}
-            />
-          </div> */}
         </Container>
       </section>
 

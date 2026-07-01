@@ -12,6 +12,7 @@ import {
   buildUrlFromAiParseResponse,
   type SearchType,
 } from "@/lib/buildListingSearchUrl";
+import useRecentSearches from "./useRecentSearches";
 
 type FormData = z.infer<typeof aiSearchSchema>;
 type SubmitPayload = FormData & { searchType?: SearchType };
@@ -20,6 +21,7 @@ const CATEGORY_DELIMITER = ".";
 
 const useListingSearch = () => {
   const router = useRouter()
+  const { recentSearches, addRecentSearch, clearRecentSearches } = useRecentSearches();
   const [open, setOpen] = useState(false);
   const [openNotify, setOpenNotify] = useState(false);
   const axiosAuth = useAxiosAuth();
@@ -138,6 +140,9 @@ const useListingSearch = () => {
 
   const onSubmit = async (values: FormData, searchType: SearchType = "sale") => {
     try {
+      if (values.query.trim()) {
+        addRecentSearch(values.query);
+      }
       await submit({ ...values, searchType });
     } catch (err) {
       toast("Failed", {
@@ -187,6 +192,8 @@ const useListingSearch = () => {
     openNotify,
     setOpenNotify,
     dealTypeOptions,
+    recentSearches,
+    clearRecentSearches,
   };
 };
 
