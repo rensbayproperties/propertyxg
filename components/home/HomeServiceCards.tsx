@@ -11,7 +11,7 @@ const services = [
       "No matter what path you take to buy your Property, we can help you navigate a successful experience.",
     cta: "Properties for sale",
     href: "/buy",
-    image: "/assets/images/hero/feat-2.png",
+    image: "/assets/images/hero/feat-1.png",
   },
   {
     title: "Rent a Property",
@@ -39,7 +39,7 @@ const HomeServiceCards = () => {
           {services.map((service) => (
             <div
               key={service.title}
-              className="bg-white rounded-2xl shadow-sm border flex flex-col gap-4 p-6 md:p-8 items-center text-center"
+              className="bg-zinc-100 rounded-2xl border flex flex-col gap-4 p-6 md:p-8 items-center text-center"
             >
               <div className="h-36 flex items-center justify-center">
                 <Image
