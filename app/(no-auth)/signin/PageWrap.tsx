@@ -163,7 +163,7 @@ const PageWrap = () => {
               </div>
             </div>
             <div className="text-center text-xs">
-              @ CRM Dubai 2025. All rights reserved
+              @ PropertyXg 2025. All rights reserved
             </div>
           </div>
         </div>

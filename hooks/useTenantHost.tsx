@@ -46,7 +46,7 @@ const detect = (): Omit<TenantHost, "ready"> => {
     rootHostname = hostname;
   } else if (parts.length >= 3 && !RESERVED_SUBDOMAINS.has(parts[0])) {
     // e.g. yolo.lvh.me  -> subdomain "yolo", root "lvh.me"
-    // e.g. acme.crmdubai.com -> "acme" + "crmdubai.com"
+    // e.g. acme.PropertyXg.com -> "acme" + "PropertyXg.com"
     subdomain = parts[0];
     rootHostname = parts.slice(1).join(".");
   } else {
@@ -65,7 +65,7 @@ const detect = (): Omit<TenantHost, "ready"> => {
  *
  * The backend already provisions per-subdomain routing, so the dashboard just
  * needs to surface the same value to the user. Use it anywhere we used to
- * fall back to a hardcoded "yourname.crmdubai.com".
+ * fall back to a hardcoded "yourname.PropertyXg.com".
  */
 export const useTenantHost = (): TenantHost => {
   const [state, setState] = useState<TenantHost>(() => ({

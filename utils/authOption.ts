@@ -90,7 +90,7 @@ export const authOptions: AuthOptions = {
   },
   cookies: {
     sessionToken: {
-      name: "next-auth.session-token-crmdubai",
+      name: "next-auth.session-token-PropertyXg",
       options: {
         domain: process.env.NODE_ENV === 'production' ? ".rensholiday.net" : ".lvh.me",
         path: "/",

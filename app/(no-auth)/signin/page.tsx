@@ -4,11 +4,11 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Sign in to your CRM Dubai account",
+  description: "Sign in to your PropertyXg account",
 };
 
 const page = () => {
-  return <PageWrap/>;
+  return <PageWrap />;
 };
 
 export default page;

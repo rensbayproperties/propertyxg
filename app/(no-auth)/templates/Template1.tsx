@@ -385,7 +385,7 @@ export default function Template1() {
                 </div>
 
                 <p className="font-semibold text-white/80 mt-4">
-                  © 2026 CRM Dubai
+                  © 2026 PropertyXg
                 </p>
               </div>
 

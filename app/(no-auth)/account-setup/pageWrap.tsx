@@ -27,14 +27,14 @@ const PageWrap = () => {
         <div className="flex justify-center items-center px-5 min-h-screen max-w-lg mx-auto">
           {initialPageLoad ? (
             <div className="flex flex-col justify-center items-center gap-2 text-center text-white">
-              <Loader2 className={cn("h-14 w-14 animate-spin")}/>
+              <Loader2 className={cn("h-14 w-14 animate-spin")} />
               <p>Validating token. Please wait.</p>
             </div>
           ) : (
             <div className="flex justify-center flex-col gap-8 mx-auto border p-6 shadow rounded-md bg-white w-full">
               <div className="flex-col flex gap-2">
                 <div className="mb-3">
-                <PageTitle title="Account Setup" subtitle="Almost there! Complete your account setup to get started" />
+                  <PageTitle title="Account Setup" subtitle="Almost there! Complete your account setup to get started" />
                 </div>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -42,7 +42,7 @@ const PageWrap = () => {
                       <FormItem>
                         <FormLabel>Firstname</FormLabel>
                         <FormControl>
-                          <Input disabled={isPending} placeholder="Enter Firstname" {...field}/>
+                          <Input disabled={isPending} placeholder="Enter Firstname" {...field} />
                         </FormControl>
 
                         <FormMessage />
@@ -53,7 +53,7 @@ const PageWrap = () => {
                       <FormItem>
                         <FormLabel>Lastname</FormLabel>
                         <FormControl>
-                          <Input disabled={isPending} placeholder="Enter Lastname" {...field}/>
+                          <Input disabled={isPending} placeholder="Enter Lastname" {...field} />
                         </FormControl>
 
                         <FormMessage />
@@ -64,7 +64,7 @@ const PageWrap = () => {
                       <FormItem>
                         <FormLabel>Create Password</FormLabel>
                         <FormControl>
-                          <Input disabled={isPending} placeholder="******" {...field} type="password" togglePassword/>
+                          <Input disabled={isPending} placeholder="******" {...field} type="password" togglePassword />
                         </FormControl>
 
                         <FormMessage />
@@ -84,9 +84,9 @@ const PageWrap = () => {
             </div>
           )}
         </div>
-         <div className="text-center text-xs">
-              @ CRM Dubai 2025. All rights reserved
-          </div>
+        <div className="text-center text-xs">
+          @ PropertyXg 2025. All rights reserved
+        </div>
       </Container>
     </div>
   );

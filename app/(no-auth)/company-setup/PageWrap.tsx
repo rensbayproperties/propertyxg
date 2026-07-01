@@ -88,7 +88,7 @@ const PageWrap = () => {
                                   placeholder="username"
                                 />
                                 <span className="flex items-center px-3 py-2 bg-brand/10 text-brand font-bold text-sm whitespace-nowrap gap-1">
-                                  .crmdubai.com
+                                  .PropertyXg.com
                                 </span>
                               </div>
                             </FormControl>
@@ -104,7 +104,7 @@ const PageWrap = () => {
                 </Form>
               </div>
             </div>
-            <div className="text-center text-xs">@ CRM Dubai 2025. All rights reserved</div>
+            <div className="text-center text-xs">@ PropertyXg 2025. All rights reserved</div>
           </div>
         </div>
       </Container>
