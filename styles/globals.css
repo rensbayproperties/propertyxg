@@ -93,6 +93,17 @@
   display: none; /* For Chrome, Safari, and Opera */
 }
 
+/* Hide scrollbar but keep scrolling functional */
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
 @layer base {
   * {
     @apply border-border;
