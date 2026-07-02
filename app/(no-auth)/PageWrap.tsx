@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Container from "@/components/Container";
 import HomeServiceCards from "@/components/home/HomeServiceCards";
+import HomeNewProjectsSection from "@/components/home/HomeNewProjectsSection";
 import HomeRecommendations from "@/components/home/HomeRecommendations";
 import HomeMortgageSection from "@/components/home/HomeMortgageSection";
 import HomeSeoDirectory from "@/components/home/HomeSeoDirectory";
@@ -535,6 +536,7 @@ const PageWrap = () => {
       </div>
       <HomeServiceCards />
       <HomeRecommendations />
+      <HomeNewProjectsSection />
       <HomeMortgageSection />
       <HomeSeoDirectory />
       {/* <div className="bg-gradient-to-b from-white to-brand/20 py-20 md:py-26">
