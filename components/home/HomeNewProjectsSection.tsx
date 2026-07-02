@@ -48,10 +48,10 @@ const HomeNewProjectsSection = () => {
     <Section>
       <Container className="space-y-6">
         <h2 className="text-2xl md:text-3xl font-bold text-center">
-          Browse New Projects in UAE
+          Browse New Projects in Dubai
         </h2>
 
-        <div className="flex justify-center">
+        {/* <div className="flex justify-center">
           <div className="inline-flex flex-wrap justify-center gap-1 p-1 border rounded-full bg-white">
             {EMIRATE_TABS.map((tab) => (
               <button
@@ -69,7 +69,7 @@ const HomeNewProjectsSection = () => {
               </button>
             ))}
           </div>
-        </div>
+        </div> */}
 
         <div className="relative">
           {isApiEnabled && !isLoading && projects.length > 0 && (

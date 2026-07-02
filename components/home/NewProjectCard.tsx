@@ -21,14 +21,14 @@ const NewProjectCard = ({ project }: NewProjectCardProps) => {
 
   return (
     <div className="w-[280px] flex-shrink-0 bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
-      <Link href={projectUrl} className="block relative h-40">
-        <Image
+      <Link href={projectUrl} className="block relative h-40 bg-zinc-200">
+        {imageSrc && <Image
           src={imageSrc}
           alt={project.project_name_en}
           fill
-          className="object-cover"
+          className="object-cover bg-zinc-200s"
           sizes="280px"
-        />
+        />}
       </Link>
 
       <div className="p-4 flex flex-col gap-3 flex-1">

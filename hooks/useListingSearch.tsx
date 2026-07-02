@@ -119,7 +119,7 @@ const useListingSearch = () => {
             req,
             {
               location,
-              projectId,
+              projectId: location ? '' : projectId,
               bedroom,
               bathroom,
               minPrice,

@@ -15,7 +15,7 @@ const siteData = {
     x: "https://x.com/crm",
     tiktok: "https://www.tiktok.com/@crm",
     defaultUserImage: "/assets/images/defaults/user.jpg",
-    defaultPropertyImage: "/assets/images/defaults/property.jpeg"
+    defaultPropertyImage: "/assets/images/defaults/property.jpg"
 }
 
 export default siteData;
