@@ -750,8 +750,8 @@ const PageWrap = ({ id }: { id: string }) => {
                       className="object-cover"
                     />
                   </div>
-                  <Link href={`/company/${listings?.data?.company?.id}`}>
-                    <button className="text-brand">View all listings →</button>
+                  <Link href={`/profile/${listings?.data?.company?.id}`}>
+                    <button className="text-brand">View profile →</button>
                   </Link>
                 </div>
               </div>
